@@ -446,3 +446,178 @@
   background: rgba(99, 102, 241, 0.2);
   color: inherit;
 }
+
+/* ========================================
+   Tiptap 编辑器样式
+   ======================================== */
+
+.tiptap-editor {
+  outline: none;
+  min-height: 100%;
+}
+
+.tiptap-editor > * + * {
+  margin-top: 0.75em;
+}
+
+.tiptap-editor h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.tiptap-editor h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #334155;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.tiptap-editor p {
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: #475569;
+  text-indent: 2em;
+}
+
+.tiptap-editor p:first-child {
+  text-indent: 0;
+}
+
+.tiptap-editor strong {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.tiptap-editor em {
+  font-style: italic;
+}
+
+.tiptap-editor u {
+  text-decoration: underline;
+}
+
+.tiptap-editor ol,
+.tiptap-editor ul {
+  padding-left: 2em;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor ol li,
+.tiptap-editor ul li {
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: #475569;
+  margin-bottom: 0.25em;
+}
+
+.tiptap-editor ol li {
+  list-style-type: decimal;
+}
+
+.tiptap-editor ul li {
+  list-style-type: disc;
+}
+
+.tiptap-editor blockquote {
+  border-left: 3px solid #f59e0b;
+  padding-left: 1rem;
+  margin: 0.75rem 0;
+  color: #64748b;
+  font-style: italic;
+}
+
+.tiptap-editor pre {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+.tiptap-editor pre code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: #334155;
+  background: none;
+  padding: 0;
+}
+
+.tiptap-editor code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.85em;
+  background-color: #f1f5f9;
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+  color: #7c3aed;
+}
+
+.tiptap-editor hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 1.5rem 0;
+}
+
+.tiptap-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0;
+}
+
+.tiptap-editor table th,
+.tiptap-editor table td {
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.tiptap-editor table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Tiptap Placeholder */
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #94a3b8;
+  pointer-events: none;
+  height: 0;
+  font-style: italic;
+}
+
+/* Tiptap focus ring */
+.tiptap-editor:focus {
+  outline: none;
+}
+
+/* ========================================
+   实时操作日志动画
+   ======================================== */
+
+@keyframes pulse-online {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
+
+.animate-pulse-online {
+  animation: pulse-online 2s ease-in-out infinite;
+}
+
+@keyframes log-fade-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-log-fade-in {
+  animation: log-fade-in 0.3s ease-out;
+}

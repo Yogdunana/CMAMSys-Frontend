@@ -184,14 +184,15 @@ export default function Home() {
                   <ArrowRight className="ml-2 size-4" />
                 </Button>
               </a>
-              <Button
-                size="lg"
-                variant="outline"
-                className="!border-white/30 !bg-transparent !text-white hover:!bg-white/10 hover:!text-white"
-                onClick={() => showToast("教程已加载，祝您学习愉快！", "success")}
-              >
-                查看教程
-              </Button>
+              <a href="/guide">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="!border-white/30 !bg-transparent !text-white hover:!bg-white/10 hover:!text-white"
+                >
+                  查看教程
+                </Button>
+              </a>
             </div>
           </div>
         </div>
