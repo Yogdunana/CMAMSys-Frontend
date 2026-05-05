@@ -18,7 +18,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress, ProgressTrack, ProgressIndicator } from "@/components/ui/progress"
 import { useToast } from "@/components/ui/toast"
-import Link from "next/link"
 import { cn } from "@/lib/utils"
 
 /* ============================================================
@@ -227,20 +226,20 @@ export default function ProgrammerPage() {
               </Badge>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/modeler">
+              <a href="/modeler">
                 <Button variant="outline" size="sm" className="gap-1.5 border-cyan-200 hover:bg-cyan-50 dark:border-cyan-800 dark:hover:bg-cyan-950/30 text-cyan-700 dark:text-cyan-400">
                   <Brain className="w-3.5 h-3.5" />
                   前往建模手工作台
                   <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
-              </Link>
-              <Link href="/writer">
+              </a>
+              <a href="/writer">
                 <Button variant="outline" size="sm" className="gap-1.5 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400">
                   <PenTool className="w-3.5 h-3.5" />
                   前往论文手工作台
                   <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -739,7 +738,7 @@ export default function ProgrammerPage() {
               <span className="text-sm font-semibold">快捷操作</span>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href="/modeler">
+              <a href="/modeler">
                 <Button
                   className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg shadow-cyan-500/20 gap-2"
                   onClick={() => showToast("结果已发送给建模手", "success")}
@@ -748,8 +747,8 @@ export default function ProgrammerPage() {
                   发送结果给建模手
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
-              </Link>
-              <Link href="/writer">
+              </a>
+              <a href="/writer">
                 <Button
                   className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg shadow-emerald-500/20 gap-2"
                   onClick={() => showToast("代码已发送给论文手", "success")}
@@ -758,7 +757,7 @@ export default function ProgrammerPage() {
                   发送代码给论文手
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
-              </Link>
+              </a>
               <Button
                 variant="outline"
                 className="border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-950/30 text-blue-700 dark:text-blue-400 gap-2"
@@ -775,7 +774,7 @@ export default function ProgrammerPage() {
                 <Download className="w-4 h-4" />
                 导出代码
               </Button>
-              <Link href="/workflow">
+              <a href="/workflow">
                 <Button
                   variant="ghost"
                   className="text-muted-foreground hover:text-foreground gap-2"
@@ -784,7 +783,7 @@ export default function ProgrammerPage() {
                   返回工作流总览
                   <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
-              </Link>
+              </a>
             </div>
           </CardContent>
         </Card>

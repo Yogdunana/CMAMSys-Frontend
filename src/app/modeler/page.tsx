@@ -18,7 +18,6 @@ import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToast } from "@/components/ui/toast"
 import { cn } from "@/lib/utils"
-import Link from "next/link"
 
 /* ------------------------------------------------------------------ */
 /*  倒计时 Hook                                                        */
@@ -240,12 +239,12 @@ export default function ModelerPage() {
                 <User className="w-3.5 h-3.5 mr-1.5" />
                 张三 · 建模手
               </Badge>
-              <Link href="/programmer">
+              <a href="/programmer">
                 <Button variant="outline" className="gap-1.5 text-sm group">
                   前往编程手工作台
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -942,7 +941,7 @@ export default function ModelerPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Link href="/programmer" onClick={handleSendToProgrammer}>
+              <a href="/programmer" onClick={handleSendToProgrammer}>
                 <div className="group p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl border border-emerald-200/60 dark:border-emerald-800/60 hover:shadow-lg hover:border-emerald-400/80 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg shadow-md group-hover:scale-110 transition-transform duration-300">
@@ -956,9 +955,9 @@ export default function ModelerPage() {
                     将最终确定的建模方案发送给编程手李四进行代码实现
                   </p>
                 </div>
-              </Link>
+              </a>
 
-              <Link href="/knowledge">
+              <a href="/knowledge">
                 <div className="group p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl border border-blue-200/60 dark:border-blue-800/60 hover:shadow-lg hover:border-blue-400/80 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg shadow-md group-hover:scale-110 transition-transform duration-300">
@@ -972,7 +971,7 @@ export default function ModelerPage() {
                     浏览团队共享的知识库，查看历史模型和参考资料
                   </p>
                 </div>
-              </Link>
+              </a>
 
               <div onClick={handleExportReport} className="cursor-pointer">
                 <div className="group p-4 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 rounded-xl border border-purple-200/60 dark:border-purple-800/60 hover:shadow-lg hover:border-purple-400/80 transition-all duration-300">
@@ -990,7 +989,7 @@ export default function ModelerPage() {
                 </div>
               </div>
 
-              <Link href="/workflow">
+              <a href="/workflow">
                 <div className="group p-4 bg-gradient-to-br from-gray-50 to-slate-100 dark:from-gray-900/30 dark:to-slate-900/30 rounded-xl border border-gray-200/60 dark:border-gray-700/60 hover:shadow-lg hover:border-gray-400/80 transition-all duration-300 cursor-pointer">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 bg-gradient-to-br from-gray-500 to-slate-600 rounded-lg shadow-md group-hover:scale-110 transition-transform duration-300">
@@ -1004,7 +1003,7 @@ export default function ModelerPage() {
                     返回协作工作流页面，查看建模手、编程手、论文手整体进度
                   </p>
                 </div>
-              </Link>
+              </a>
             </div>
           </CardContent>
         </Card>

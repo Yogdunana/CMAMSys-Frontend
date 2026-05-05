@@ -56,7 +56,6 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 /* ============================================================
    Data
@@ -288,18 +287,18 @@ export default function WriterPage() {
                 <Users className="w-3.5 h-3.5 mr-1.5" />
                 王五 · 论文手
               </Badge>
-              <Link href="/modeler">
+              <a href="/modeler">
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs border-amber-200 hover:bg-amber-50 hover:border-amber-300 text-amber-700">
                   前往建模手工作台
                   <ArrowRight className="w-3 h-3" />
                 </Button>
-              </Link>
-              <Link href="/programmer">
+              </a>
+              <a href="/programmer">
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs border-amber-200 hover:bg-amber-50 hover:border-amber-300 text-amber-700">
                   前往编程手工作台
                   <ArrowRight className="w-3 h-3" />
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -921,7 +920,7 @@ export default function WriterPage() {
           </CardHeader>
           <CardContent className="px-5 pb-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <Link href="/modeler">
+              <a href="/modeler">
                 <Button
                   variant="outline"
                   className="w-full h-auto py-3 flex flex-col items-center gap-2 border-amber-200/60 hover:bg-amber-50 hover:border-amber-300 text-amber-700 transition-all group"
@@ -935,9 +934,9 @@ export default function WriterPage() {
                     <p className="text-[10px] text-muted-foreground mt-0.5">跳转建模手工作台</p>
                   </div>
                 </Button>
-              </Link>
+              </a>
 
-              <Link href="/programmer">
+              <a href="/programmer">
                 <Button
                   variant="outline"
                   className="w-full h-auto py-3 flex flex-col items-center gap-2 border-amber-200/60 hover:bg-amber-50 hover:border-amber-300 text-amber-700 transition-all group"
@@ -951,7 +950,7 @@ export default function WriterPage() {
                     <p className="text-[10px] text-muted-foreground mt-0.5">跳转编程手工作台</p>
                   </div>
                 </Button>
-              </Link>
+              </a>
 
               <Button
                 variant="outline"
@@ -967,7 +966,7 @@ export default function WriterPage() {
                 </div>
               </Button>
 
-              <Link href="/workflow">
+              <a href="/workflow">
                 <Button
                   variant="outline"
                   className="w-full h-auto py-3 flex flex-col items-center gap-2 border-amber-200/60 hover:bg-amber-50 hover:border-amber-300 text-amber-700 transition-all group"
@@ -980,7 +979,7 @@ export default function WriterPage() {
                     <p className="text-[10px] text-muted-foreground mt-0.5">查看整体进度</p>
                   </div>
                 </Button>
-              </Link>
+              </a>
             </div>
           </CardContent>
         </Card>

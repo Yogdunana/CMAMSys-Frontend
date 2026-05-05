@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useEffect,
 } from "react";
 import { X, CheckCircle2, Info, AlertTriangle } from "lucide-react";
 
@@ -47,9 +48,22 @@ function ToastItem({
   toast: Toast;
   onDismiss: (id: number) => void;
 }) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Trigger enter animation on mount
+    requestAnimationFrame(() => {
+      setIsVisible(true);
+    });
+  }, []);
+
   return (
     <div
-      className={`flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 border-l-4 ${borderMap[toast.type]} px-4 py-3 min-w-[280px] max-w-[420px] animate-in slide-in-from-right fade-in duration-300`}
+      className={`flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 border-l-4 ${borderMap[toast.type]} px-4 py-3 min-w-[300px] max-w-[420px] pointer-events-auto transition-all duration-300 ${
+        isVisible
+          ? "translate-x-0 opacity-100"
+          : "translate-x-[100%] opacity-0"
+      }`}
     >
       {iconMap[toast.type]}
       <p className="text-sm text-gray-800 dark:text-gray-200 flex-1">
@@ -86,7 +100,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {/* Toast container */}
-      <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2">
+      <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onDismiss={dismissToast} />
         ))}

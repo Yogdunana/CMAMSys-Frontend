@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   Users,
   Trophy,
@@ -176,7 +175,7 @@ export default function Home() {
               CMAMSys 是一个AI驱动的数学建模全流程协作工具，帮助团队高效完成从问题分析到模型验证的完整建模过程
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/workflow" passHref legacyBehavior>
+              <a href="/workflow">
                 <Button
                   size="lg"
                   className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg shadow-white/20"
@@ -184,11 +183,11 @@ export default function Home() {
                   开始建模
                   <ArrowRight className="ml-2 size-4" />
                 </Button>
-              </Link>
+              </a>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 hover:text-white"
+                className="!border-white/30 !bg-transparent !text-white hover:!bg-white/10 hover:!text-white"
                 onClick={() => showToast("教程已加载，祝您学习愉快！", "success")}
               >
                 查看教程
