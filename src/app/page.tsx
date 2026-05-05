@@ -1,0 +1,342 @@
+"use client";
+
+import React from "react";
+import {
+  Users,
+  Trophy,
+  Brain,
+  BookOpen,
+  Award,
+  FileText,
+  Bot,
+  Layers,
+  Database,
+  Shield,
+  FolderKanban,
+  Clock,
+  CheckCircle2,
+  GitBranch,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
+import { StatCard } from "@/components/layout/stat-card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+interface AdvantageCard {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  gradient: "indigo" | "cyan" | "purple" | "emerald" | "amber" | "rose";
+}
+
+const advantageCards: AdvantageCard[] = [
+  {
+    icon: <Bot className="size-5" />,
+    title: "多AI模型协作",
+    description: "集成多个AI模型，智能分工协作，提升建模效率",
+    gradient: "indigo",
+  },
+  {
+    icon: <Layers className="size-5" />,
+    title: "三层机制设计",
+    description: "模型层、协作层、应用层三层架构，系统化建模流程",
+    gradient: "cyan",
+  },
+  {
+    icon: <GitBranch className="size-5" />,
+    title: "完整数据流",
+    description: "从问题分析到模型验证，全流程数据可追溯",
+    gradient: "purple",
+  },
+  {
+    icon: <Database className="size-5" />,
+    title: "知识沉淀",
+    description: "自动沉淀建模经验，形成可复用的知识库",
+    gradient: "emerald",
+  },
+  {
+    icon: <Shield className="size-5" />,
+    title: "区块链存证",
+    description: "关键操作上链存证，确保成果可信不可篡改",
+    gradient: "amber",
+  },
+  {
+    icon: <FolderKanban className="size-5" />,
+    title: "MMP全记录",
+    description: "完整记录数学建模过程，支持回溯与复盘",
+    gradient: "rose",
+  },
+];
+
+interface ActivityItem {
+  id: string;
+  type: "team" | "model" | "knowledge" | "card" | "mmp";
+  title: string;
+  description: string;
+  time: string;
+  icon: React.ReactNode;
+}
+
+const recentActivities: ActivityItem[] = [
+  {
+    id: "1",
+    type: "team",
+    title: "新团队创建",
+    description: "「数学建模先锋队」成功组建，成员5人",
+    time: "10分钟前",
+    icon: <Users className="size-4" />,
+  },
+  {
+    id: "2",
+    type: "model",
+    title: "AI模型协作完成",
+    description: "GPT-4o与Claude 3.5协作完成「人口增长预测」模型",
+    time: "25分钟前",
+    icon: <Brain className="size-4" />,
+  },
+  {
+    id: "3",
+    type: "knowledge",
+    title: "知识库新增论文",
+    description: "上传《基于深度学习的优化算法研究》等3篇论文",
+    time: "1小时前",
+    icon: <BookOpen className="size-4" />,
+  },
+  {
+    id: "4",
+    type: "card",
+    title: "能力Card生成",
+    description: "为「李四」生成数据分析能力Card，评分92分",
+    time: "2小时前",
+    icon: <Award className="size-4" />,
+  },
+  {
+    id: "5",
+    type: "mmp",
+    title: "MMP文件归档",
+    description: "「2024全国大学生数学建模竞赛」MMP文件已归档",
+    time: "3小时前",
+    icon: <FileText className="size-4" />,
+  },
+];
+
+const getActivityTypeColor = (type: ActivityItem["type"]) => {
+  switch (type) {
+    case "team":
+      return "bg-indigo-500/10 text-indigo-600 border-indigo-500/20";
+    case "model":
+      return "bg-purple-500/10 text-purple-600 border-purple-500/20";
+    case "knowledge":
+      return "bg-cyan-500/10 text-cyan-600 border-cyan-500/20";
+    case "card":
+      return "bg-amber-500/10 text-amber-600 border-amber-500/20";
+    case "mmp":
+      return "bg-rose-500/10 text-rose-600 border-rose-500/20";
+    default:
+      return "bg-gray-500/10 text-gray-600 border-gray-500/20";
+  }
+};
+
+export default function Home() {
+  return (
+    <div className="min-h-full bg-gradient-bg-mesh">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* 欢迎横幅 */}
+        <div className="particles-bg relative overflow-hidden rounded-3xl gradient-bg p-8 mb-8">
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="size-5 text-white/90" />
+              <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+                欢迎回来
+              </Badge>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+              开启数学建模协作新时代
+            </h1>
+            <p className="text-white/80 text-base max-w-2xl mb-6">
+              CMAMSys 是一个AI驱动的数学建模全流程协作工具，帮助团队高效完成从问题分析到模型验证的完整建模过程
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                size="lg"
+                className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg shadow-white/20"
+              >
+                开始建模
+                <ArrowRight className="ml-2 size-4" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10"
+              >
+                查看教程
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* 统计卡片 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <StatCard
+            icon={<Users className="size-5" />}
+            title="活跃团队"
+            value="128"
+            change={12}
+            changeLabel="较上周"
+            gradient="indigo"
+          />
+          <StatCard
+            icon={<Trophy className="size-5" />}
+            title="进行中竞赛"
+            value="42"
+            change={8}
+            changeLabel="较上周"
+            gradient="purple"
+          />
+          <StatCard
+            icon={<Brain className="size-5" />}
+            title="AI模型协作"
+            value="1,024"
+            change={24}
+            changeLabel="较上周"
+            gradient="cyan"
+          />
+          <StatCard
+            icon={<BookOpen className="size-5" />}
+            title="知识库论文"
+            value="3,567"
+            change={15}
+            changeLabel="较上周"
+            gradient="emerald"
+          />
+          <StatCard
+            icon={<Award className="size-5" />}
+            title="能力Card"
+            value="892"
+            change={18}
+            changeLabel="较上周"
+            gradient="amber"
+          />
+          <StatCard
+            icon={<FileText className="size-5" />}
+            title="MMP文件"
+            value="2,341"
+            change={21}
+            changeLabel="较上周"
+            gradient="rose"
+          />
+        </div>
+
+        {/* 系统核心优势 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-foreground">系统核心优势</h2>
+            <Button variant="ghost" size="sm" className="text-muted-foreground">
+              了解更多
+              <ArrowRight className="ml-1 size-3.5" />
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {advantageCards.map((card, index) => (
+              <Card
+                key={index}
+                className={cn(
+                  "group relative overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-md",
+                  "transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                )}
+              >
+                <CardContent className="relative p-5">
+                  <div
+                    className={cn(
+                      "flex size-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg transition-transform duration-300 group-hover:scale-110 mb-4",
+                      card.gradient === "indigo" && "from-indigo-500 to-indigo-600",
+                      card.gradient === "cyan" && "from-cyan-500 to-blue-500",
+                      card.gradient === "purple" && "from-purple-500 to-violet-600",
+                      card.gradient === "emerald" && "from-emerald-500 to-teal-500",
+                      card.gradient === "amber" && "from-amber-500 to-orange-500",
+                      card.gradient === "rose" && "from-rose-500 to-pink-500"
+                    )}
+                  >
+                    <div className="text-white">{card.icon}</div>
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground mb-2">
+                    {card.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {card.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* 最近活动 */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-foreground">最近活动</h2>
+            <Button variant="ghost" size="sm" className="text-muted-foreground">
+              查看全部
+              <ArrowRight className="ml-1 size-3.5" />
+            </Button>
+          </div>
+          <Card className="glass-card-strong rounded-2xl border-0">
+            <CardContent className="p-0">
+              <div className="divide-y divide-border/50">
+                {recentActivities.map((activity, index) => (
+                  <div
+                    key={activity.id}
+                    className={cn(
+                      "flex items-start gap-4 p-4 transition-colors hover:bg-muted/30",
+                      index === 0 && "animate-fade-in-up"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "flex size-10 items-center justify-center rounded-lg border shrink-0",
+                        getActivityTypeColor(activity.type)
+                      )}
+                    >
+                      <div className="text-foreground">{activity.icon}</div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-sm font-semibold text-foreground">
+                          {activity.title}
+                        </h4>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] px-1.5 py-0 h-4"
+                        >
+                          {activity.type === "team" && "团队"}
+                          {activity.type === "model" && "AI协作"}
+                          {activity.type === "knowledge" && "知识库"}
+                          {activity.type === "card" && "能力Card"}
+                          {activity.type === "mmp" && "MMP"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-1.5">
+                        {activity.description}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Clock className="size-3" />
+                        <span>{activity.time}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center shrink-0">
+                      <CheckCircle2 className="size-4 text-emerald-500" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
