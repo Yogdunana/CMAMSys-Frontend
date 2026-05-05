@@ -16,6 +16,9 @@ import {
   Menu,
   X,
   Sparkles,
+  Brain,
+  Code,
+  PenTool,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -32,6 +35,9 @@ const navItems: NavItem[] = [
   { label: "系统概览", href: "/", icon: Home, emoji: "\u{1F3E0}" },
   { label: "团队组建", href: "/team", icon: Users, emoji: "\u{1F465}" },
   { label: "协作工作流", href: "/workflow", icon: Workflow, emoji: "\u{1F504}" },
+  { label: "建模手工作台", href: "/modeler", icon: Brain, emoji: "\u{1F9E0}" },
+  { label: "编程手工作台", href: "/programmer", icon: Code, emoji: "\u{1F4BB}" },
+  { label: "论文手工作台", href: "/writer", icon: PenTool, emoji: "\u{270F}\u{FE0F}" },
   { label: "知识库", href: "/knowledge", icon: BookOpen, emoji: "\u{1F4DA}" },
   { label: "工作空间", href: "/workspace", icon: FolderOpen, emoji: "\u{1F4BC}" },
   { label: "MMP文件", href: "/mmp", icon: FileText, emoji: "\u{1F4C4}" },
