@@ -172,6 +172,23 @@ export default function KnowledgePage() {
     );
   };
 
+  const matchesFilter = (item: { tags?: string[]; year?: string; category?: string; competition?: string; score?: string; award?: string }): boolean => {
+    if (activeFilters.length === 0) return true;
+    const allText = [
+      item.tags?.join(" "),
+      item.year,
+      item.category,
+      item.competition,
+      item.score,
+      item.award,
+    ].filter(Boolean).join(" ");
+    return activeFilters.some((filter) => allText.includes(filter));
+  };
+
+  const filteredPapers = awardPapers.filter((paper) => matchesFilter(paper));
+  const filteredApproaches = approaches.filter((approach) => matchesFilter(approach));
+  const filteredCases = cases.filter((caseItem) => matchesFilter(caseItem));
+
   const handleSearch = () => {
     if (searchQuery.trim()) {
       showToast(`正在搜索"${searchQuery}"，找到 ${Math.floor(Math.random() * 50 + 10)} 条相关结果`, "success");
@@ -301,7 +318,14 @@ export default function KnowledgePage() {
           {/* 获奖论文框架 */}
           <TabsContent value="papers">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {awardPapers.map((paper, index) => (
+              {filteredPapers.length === 0 ? (
+                <div className="col-span-2 text-center py-12 text-muted-foreground">
+                  <Filter className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">没有匹配的论文，请调整筛选条件</p>
+                </div>
+              ) : (
+              <>
+              {filteredPapers.map((paper, index) => (
                 <Card
                   key={index}
                   className="group border-0 bg-white/60 backdrop-blur-xl shadow-lg shadow-blue-500/5 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
@@ -346,13 +370,22 @@ export default function KnowledgePage() {
                   </CardContent>
                 </Card>
               ))}
+              </>
+              )}
             </div>
           </TabsContent>
 
           {/* 解题思路库 */}
           <TabsContent value="approaches">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {approaches.map((approach, index) => (
+              {filteredApproaches.length === 0 ? (
+                <div className="col-span-3 text-center py-12 text-muted-foreground">
+                  <Filter className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">没有匹配的思路，请调整筛选条件</p>
+                </div>
+              ) : (
+              <>
+              {filteredApproaches.map((approach, index) => (
                 <Card
                   key={index}
                   className="group border-0 bg-white/60 backdrop-blur-xl shadow-lg shadow-purple-500/5 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
@@ -397,13 +430,22 @@ export default function KnowledgePage() {
                   </CardContent>
                 </Card>
               ))}
+              </>
+              )}
             </div>
           </TabsContent>
 
           {/* 优秀案例沉淀 */}
           <TabsContent value="cases">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              {cases.map((caseItem, index) => (
+              {filteredCases.length === 0 ? (
+                <div className="col-span-3 text-center py-12 text-muted-foreground">
+                  <Filter className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">没有匹配的案例，请调整筛选条件</p>
+                </div>
+              ) : (
+              <>
+              {filteredCases.map((caseItem, index) => (
                 <Card
                   key={index}
                   className="group border-0 bg-white/60 backdrop-blur-xl shadow-lg shadow-amber-500/5 hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
@@ -447,6 +489,8 @@ export default function KnowledgePage() {
                   </CardContent>
                 </Card>
               ))}
+              </>
+              )}
             </div>
           </TabsContent>
         </Tabs>

@@ -822,13 +822,13 @@ export default function ModelerPage() {
                         {record.summary}
                       </p>
                     </div>
-                    <a
-                      href={record.link}
+                    <button
+                      type="button"
                       className="shrink-0 p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
-                      onClick={(e) => e.preventDefault()}
+                      onClick={() => showToast(`正在打开: ${record.title}`, "info")}
                     >
                       <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-purple-500 transition-colors" />
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Users,
   Trophy,
@@ -175,18 +176,19 @@ export default function Home() {
               CMAMSys 是一个AI驱动的数学建模全流程协作工具，帮助团队高效完成从问题分析到模型验证的完整建模过程
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button
-                size="lg"
-                className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg shadow-white/20"
-                onClick={() => router.push("/workflow")}
-              >
-                开始建模
-                <ArrowRight className="ml-2 size-4" />
-              </Button>
+              <Link href="/workflow" passHref legacyBehavior>
+                <Button
+                  size="lg"
+                  className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg shadow-white/20"
+                >
+                  开始建模
+                  <ArrowRight className="ml-2 size-4" />
+                </Button>
+              </Link>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white/30 text-white hover:bg-white/10"
+                className="border-white/30 text-white hover:bg-white/10 hover:text-white"
                 onClick={() => showToast("教程已加载，祝您学习愉快！", "success")}
               >
                 查看教程
@@ -415,9 +417,10 @@ export default function Home() {
                   <div
                     key={activity.id}
                     className={cn(
-                      "flex items-start gap-4 p-4 transition-colors hover:bg-muted/30",
+                      "flex items-start gap-4 p-4 transition-colors hover:bg-muted/30 cursor-pointer",
                       index === 0 && "animate-fade-in-up"
                     )}
+                    onClick={() => showToast(`${activity.title}：${activity.description}`, "info")}
                   >
                     <div
                       className={cn(

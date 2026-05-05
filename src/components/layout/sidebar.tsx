@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Home,
@@ -15,7 +16,6 @@ import {
   ChevronRight,
   Menu,
   X,
-  Sparkles,
   Brain,
   Code,
   PenTool,
@@ -93,24 +93,30 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col">
       {/* Logo区域 */}
-      <div className={cn(
-        "flex items-center border-b border-border/50 px-4 py-5",
+      <Link href="/" className={cn(
+        "flex items-center border-b border-border/50 px-4 py-4 cursor-pointer hover:bg-muted/30 transition-colors",
         isCollapsed ? "justify-center px-2" : "gap-3"
       )}>
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 shadow-lg shadow-indigo-500/20">
-          <Sparkles className="size-5 text-white" />
-        </div>
-        {!isCollapsed && (
-          <div className="flex flex-col">
-            <span className="text-lg font-bold gradient-text leading-tight">
-              CMAMSys
-            </span>
-            <span className="text-[10px] text-muted-foreground leading-tight">
-              数学建模协作系统
-            </span>
-          </div>
+        {isCollapsed ? (
+          <Image
+            src="/logo.svg"
+            alt="CMAMSys"
+            width={36}
+            height={40}
+            className="transition-transform hover:scale-105"
+            priority
+          />
+        ) : (
+          <Image
+            src="/logo-withtext.svg"
+            alt="CMAMSys - 数学建模协作系统"
+            width={140}
+            height={62}
+            className="transition-transform hover:scale-[1.02]"
+            priority
+          />
         )}
-      </div>
+      </Link>
 
       {/* 导航区域 */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
@@ -237,12 +243,16 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           >
             <Menu className="size-5" />
           </Button>
-          <div className="flex items-center gap-2">
-            <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500">
-              <Sparkles className="size-3.5 text-white" />
-            </div>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo.svg"
+              alt="CMAMSys"
+              width={28}
+              height={31}
+              priority
+            />
             <span className="text-sm font-bold gradient-text">CMAMSys</span>
-          </div>
+          </Link>
         </header>
 
         {/* 页面内容 */}

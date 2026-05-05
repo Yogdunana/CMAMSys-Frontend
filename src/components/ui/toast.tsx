@@ -49,7 +49,7 @@ function ToastItem({
 }) {
   return (
     <div
-      className={`flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 border-l-4 ${borderMap[toast.type]} px-4 py-3 min-w-[280px] max-w-[420px] animate-in slide-in-from-right-full fade-in duration-300`}
+      className={`flex items-center gap-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 border-l-4 ${borderMap[toast.type]} px-4 py-3 min-w-[280px] max-w-[420px] animate-in slide-in-from-right fade-in duration-300`}
     >
       {iconMap[toast.type]}
       <p className="text-sm text-gray-800 dark:text-gray-200 flex-1">

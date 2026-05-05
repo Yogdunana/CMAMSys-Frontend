@@ -524,6 +524,7 @@ export default function CardPage() {
               <Card
                 key={index}
                 className="border-0 bg-white/60 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+                onClick={() => showToast(`${scenario.title}: ${scenario.description}`, "info")}
               >
                 <CardContent className="p-5 text-center">
                   <div

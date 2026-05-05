@@ -11,7 +11,6 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -125,6 +124,114 @@ t = np.linspace(0, 100, 1000)
 
 result = odeint(seir_model, y0, t,
                 args=(beta, sigma, gamma, N))`;
+
+interface ChapterContent {
+  title: string;
+  sections: { heading: string; body: string; formula?: string }[];
+}
+
+const chapterContents: Record<number, ChapterContent> = {
+  1: {
+    title: "摘要",
+    sections: [
+      {
+        heading: "",
+        body: "本文针对2024年MCM-C题「渔业气候影响分析」问题，建立了一个SEIR-CA混合模型来研究气候变化对渔业资源的影响机制。首先，我们构建了基于SEIR框架的渔业资源动态模型，将渔业资源分为健康、退化、枯竭和恢复四个状态。其次，引入元胞自动机（CA）处理不同海域之间的空间扩散效应。通过贝叶斯推断方法对模型参数进行拟合，结果表明模型拟合优度R²达到0.947。最后，基于模型结果提出了可持续渔业管理的政策建议。",
+      },
+    ],
+  },
+  2: {
+    title: "问题重述",
+    sections: [
+      {
+        heading: "2.1 问题背景",
+        body: "全球气候变化对海洋生态系统产生了深远影响，渔业资源作为海洋生态系统的重要组成部分，其动态变化直接关系到全球粮食安全和经济发展。近年来，海水温度升高、海洋酸化、洋流变化等因素导致渔业资源分布和产量发生显著变化。",
+      },
+      {
+        heading: "2.2 问题要求",
+        body: "题目要求我们：（1）建立气候变化对渔业资源影响的数学模型；（2）分析不同气候情景下渔业资源的动态变化趋势；（3）评估现有渔业管理政策的有效性；（4）提出可持续渔业管理的优化建议。需要考虑时间维度和空间维度的耦合效应。",
+      },
+    ],
+  },
+  3: {
+    title: "模型假设",
+    sections: [
+      {
+        heading: "",
+        body: "为简化模型并保证其合理性，本文提出以下假设：\n\n假设1：研究区域内渔业资源总量在短期内保持相对稳定，不考虑外部物种入侵的影响。\n\n假设2：气候变化参数（如海表温度、盐度等）在模型时间尺度内呈连续变化趋势。\n\n假设3：各海域之间的渔业资源扩散遵循距离衰减规律，扩散概率与海域间距离成反比。\n\n假设4：模型参数不随时间变化，即采用时不变参数假设。\n\n假设5：渔业资源的自然恢复率与当前资源量成正比，符合Logistic增长模型。",
+      },
+    ],
+  },
+  4: {
+    title: "符号说明",
+    sections: [
+      {
+        heading: "",
+        body: "本文使用的主要符号及其含义如下表所示：",
+        formula: "S(t): t时刻健康渔业资源量\nE(t): t时刻退化渔业资源量\nI(t): t时刻枯竭渔业资源量\nR(t): t时刻恢复渔业资源量\nβ: 资源退化率\nσ: 退化到枯竭的转化率\nγ: 资源恢复率\nN: 渔业资源总量\nL: 空间网格边长\nd₀: 特征距离参数",
+      },
+    ],
+  },
+  5: {
+    title: "模型建立",
+    sections: [
+      {
+        heading: "5.1 SEIR基础模型",
+        body: "我们采用SEIR（Susceptible-Exposed-Infectious-Recovered）模型作为传染病传播的基础框架。该模型将人群分为四个仓室：易感者(S)、潜伏者(E)、感染者(I)和康复者(R)，其动力学方程如下：",
+        formula: "dS/dt = -βSI / N\ndE/dt = βSI / N - σE\ndI/dt = σE - γI\ndR/dt = γI",
+      },
+      {
+        heading: "",
+        body: "其中 β 为传染率，σ 为潜伏期转化率，γ 为恢复率，N 为总人口数。模型的基本再生数 R₀ = β/γ 决定了疫情的传播趋势。",
+      },
+      {
+        heading: "5.2 元胞自动机空间扩展",
+        body: "在SEIR模型基础上，我们引入元胞自动机(CA)来处理疾病传播的空间异质性。将研究区域划分为 L×L 的网格，每个网格单元代表一个子区域，其状态由该区域内的SEIR各仓室人数决定。\n\n元胞的状态转移规则如下：每个时间步内，中心元胞与Moore邻域（8个相邻元胞）进行人口流动交互，流动概率与相邻元胞间的距离成反比。设 p_ij 为元胞 i 向元胞 j 的流动概率：",
+        formula: "p_ij = k · exp(-d_ij / d₀)",
+      },
+      {
+        heading: "",
+        body: "其中 d_ij 为两元胞中心间距离，d₀ 为特征距离参数，k 为归一化系数。通过这种混合建模方式，我们能够同时捕捉疫情传播的时间动态特征和空间扩散模式",
+      },
+    ],
+  },
+  6: {
+    title: "模型求解",
+    sections: [
+      {
+        heading: "",
+        body: "该章节尚未开始编写。\n\n计划内容：\n1. SEIR模型数值求解方法（四阶Runge-Kutta法）\n2. 元胞自动机迭代规则实现\n3. 参数拟合方法（贝叶斯MCMC）\n4. 模型耦合求解流程",
+      },
+    ],
+  },
+  7: {
+    title: "结果分析",
+    sections: [
+      {
+        heading: "",
+        body: "该章节尚未开始编写。\n\n计划内容：\n1. 不同气候情景下的模拟结果对比\n2. 参数敏感性分析\n3. 模型鲁棒性验证\n4. 与历史数据的对比分析",
+      },
+    ],
+  },
+  8: {
+    title: "模型评价与改进",
+    sections: [
+      {
+        heading: "",
+        body: "该章节尚未开始编写。\n\n计划内容：\n1. 模型优缺点分析\n2. 与其他模型的对比\n3. 改进方向探讨\n4. 局限性说明",
+      },
+    ],
+  },
+  9: {
+    title: "参考文献",
+    sections: [
+      {
+        heading: "",
+        body: "该章节尚未开始编写。\n\n计划引用文献：\n[1] Anderson R M, May R M. Infectious Diseases of Humans[M]. Oxford University Press, 1991.\n[2] Wolfram S. A New Kind of Science[M]. Wolfram Media, 2002.\n[3] FAO. The State of World Fisheries and Aquaculture[R]. Rome: FAO, 2024.",
+      },
+    ],
+  },
+};
 
 /* ============================================================
    Component
@@ -339,15 +446,15 @@ export default function WriterPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
                   <CardTitle className="text-sm font-bold text-slate-800">
-                    第五章 模型建立
+                    第{activeChapter}章 {chapterContents[activeChapter]?.title}
                   </CardTitle>
                   <Badge variant="secondary" className="text-[10px] bg-orange-100 text-orange-600">
-                    编写中
+                    {chapters.find(c => c.id === activeChapter)?.status === "completed" ? "已完成" : chapters.find(c => c.id === activeChapter)?.status === "writing" ? "编写中" : "未开始"}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Hash className="w-3 h-3" />
-                  <span>1,200字</span>
+                  <span>{chapters.find(c => c.id === activeChapter)?.words.toLocaleString()}字</span>
                 </div>
               </div>
             </CardHeader>
@@ -356,48 +463,36 @@ export default function WriterPage() {
               <div className="bg-white rounded-b-xl">
                 <ScrollArea className="h-[480px]">
                   <div className="px-8 py-6 font-serif text-slate-800 leading-relaxed max-w-none">
-                    {/* Chapter content */}
+                    {/* Chapter content - dynamic based on activeChapter */}
                     <h2 className="text-xl font-bold text-slate-900 mb-4">
-                      5. 模型建立
+                      {activeChapter}. {chapterContents[activeChapter]?.title}
                     </h2>
 
-                    <h3 className="text-base font-bold text-slate-800 mt-6 mb-3">
-                      5.1 SEIR基础模型
-                    </h3>
+                    {chapterContents[activeChapter]?.sections.map((section, idx) => (
+                      <div key={idx}>
+                        {section.heading && (
+                          <h3 className="text-base font-bold text-slate-800 mt-6 mb-3">
+                            {section.heading}
+                          </h3>
+                        )}
+                        {section.body.split("\n\n").map((paragraph, pIdx) => (
+                          <p key={pIdx} className="text-sm text-slate-700 mb-3 indent-8">
+                            {paragraph}
+                          </p>
+                        ))}
+                        {section.formula && (
+                          <div className="bg-slate-50 rounded-lg p-4 mb-3 border border-slate-100 font-mono text-sm text-slate-600">
+                            {section.formula.split("\n").map((line, lIdx) => (
+                              <p key={lIdx} className={lIdx > 0 ? "mt-1" : ""}>{line}</p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
 
-                    <p className="text-sm text-slate-700 mb-3 indent-8">
-                      我们采用SEIR（Susceptible-Exposed-Infectious-Recovered）模型作为传染病传播的基础框架。该模型将人群分为四个仓室：易感者(S)、潜伏者(E)、感染者(I)和康复者(R)，其动力学方程如下：
-                    </p>
-
-                    <div className="bg-slate-50 rounded-lg p-4 mb-3 border border-slate-100 font-mono text-sm text-slate-600">
-                      <p className="mb-1">dS/dt = -&beta;SI / N</p>
-                      <p className="mb-1">dE/dt = &beta;SI / N - &sigma;E</p>
-                      <p className="mb-1">dI/dt = &sigma;E - &gamma;I</p>
-                      <p>dR/dt = &gamma;I</p>
-                    </div>
-
-                    <p className="text-sm text-slate-700 mb-3 indent-8">
-                      其中 &beta; 为传染率，&sigma; 为潜伏期转化率，&gamma; 为恢复率，N 为总人口数。模型的基本再生数 R₀ = &beta;/&gamma; 决定了疫情的传播趋势。
-                    </p>
-
-                    <h3 className="text-base font-bold text-slate-800 mt-6 mb-3">
-                      5.2 元胞自动机空间扩展
-                    </h3>
-
-                    <p className="text-sm text-slate-700 mb-3 indent-8">
-                      在SEIR模型基础上，我们引入元胞自动机(CA)来处理疾病传播的空间异质性。将研究区域划分为 L&times;L 的网格，每个网格单元代表一个子区域，其状态由该区域内的SEIR各仓室人数决定。
-                    </p>
-
-                    <p className="text-sm text-slate-700 mb-3 indent-8">
-                      元胞的状态转移规则如下：每个时间步内，中心元胞与Moore邻域（8个相邻元胞）进行人口流动交互，流动概率与相邻元胞间的距离成反比。设 p_ij 为元胞 i 向元胞 j 的流动概率：
-                    </p>
-
-                    <div className="bg-slate-50 rounded-lg p-4 mb-3 border border-slate-100 font-mono text-sm text-slate-600">
-                      <p>p_ij = k &middot; exp(-d_ij / d₀)</p>
-                    </div>
-
-                    <p className="text-sm text-slate-700 mb-3 indent-8">
-                      其中 d_ij 为两元胞中心间距离，d₀ 为特征距离参数，k 为归一化系数。通过这种混合建模方式，我们能够同时捕捉疫情传播的时间动态特征和空间扩散模式<span className="inline-block w-0.5 h-4 bg-amber-500 ml-0.5 animate-pulse align-text-bottom" /></p>
+                    {chapters.find(c => c.id === activeChapter)?.status === "writing" && (
+                      <span className="inline-block w-0.5 h-4 bg-amber-500 ml-0.5 animate-pulse align-text-bottom" />
+                    )}
                   </div>
                 </ScrollArea>
               </div>
@@ -405,7 +500,7 @@ export default function WriterPage() {
             <Separator className="bg-amber-100/50" />
             <CardFooter className="px-5 py-2.5 flex items-center justify-between">
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>本章 1,200字</span>
+                <span>本章 {chapters.find(c => c.id === activeChapter)?.words.toLocaleString()}字</span>
                 <Separator orientation="vertical" className="h-3 bg-slate-200" />
                 <span>全文 {totalWords.toLocaleString()}字</span>
               </div>
@@ -508,18 +603,15 @@ export default function WriterPage() {
                         </p>
                         <div className="flex gap-2">
                           <Dialog open={codeDialogOpen} onOpenChange={setCodeDialogOpen}>
-                            <DialogTrigger
-                              render={
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 text-xs border-blue-200 hover:bg-blue-50 text-blue-700"
-                                >
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  查看代码
-                                </Button>
-                              }
-                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs border-blue-200 hover:bg-blue-50 text-blue-700"
+                              onClick={() => setCodeDialogOpen(true)}
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              查看代码
+                            </Button>
                             <DialogContent className="max-w-2xl max-h-[80vh]">
                               <DialogHeader>
                                 <DialogTitle className="flex items-center gap-2">

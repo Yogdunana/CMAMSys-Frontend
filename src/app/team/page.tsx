@@ -102,7 +102,7 @@ export default function TeamPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* 建模手卡片 */}
-            <Card className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-violet-500/30 hover:border-violet-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-violet-500/20">
+            <Card className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-violet-500/30 hover:border-violet-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-violet-500/20 cursor-pointer" onClick={() => showToast("建模手：张三，负责思路构建、数学模型设计", "info")}>
               <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent rounded-xl" />
               <CardHeader className="relative">
                 <div className="flex items-center justify-between mb-3">
@@ -132,7 +132,7 @@ export default function TeamPage() {
             </Card>
 
             {/* 编程手卡片 */}
-            <Card className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-fuchsia-500/30 hover:border-fuchsia-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-fuchsia-500/20">
+            <Card className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-fuchsia-500/30 hover:border-fuchsia-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-fuchsia-500/20 cursor-pointer" onClick={() => showToast("编程手：李四，负责代码实现、数据运算", "info")}>
               <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/5 to-transparent rounded-xl" />
               <CardHeader className="relative">
                 <div className="flex items-center justify-between mb-3">
@@ -162,7 +162,7 @@ export default function TeamPage() {
             </Card>
 
             {/* 论文手卡片 */}
-            <Card className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-pink-500/30 hover:border-pink-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/20">
+            <Card className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-2 border-pink-500/30 hover:border-pink-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/20 cursor-pointer" onClick={() => showToast("论文手：王五，负责论文撰写、成果呈现", "info")}>
               <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-transparent rounded-xl" />
               <CardHeader className="relative">
                 <div className="flex items-center justify-between mb-3">
@@ -215,7 +215,7 @@ export default function TeamPage() {
 
               <div className="space-y-3">
                 {/* 推荐项 1 */}
-                <div className="flex items-center justify-between p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all">
+                <div className="flex items-center justify-between p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all cursor-pointer" onClick={() => showToast("已选择推荐：张三 → 建模手（置信度 95%）", "success")}>
                   <div className="flex items-center gap-3">
                     <Avatar className="w-10 h-10">
                       <AvatarFallback className="bg-gradient-to-br from-violet-500 to-violet-600 text-white font-bold">
@@ -238,7 +238,7 @@ export default function TeamPage() {
                 </div>
 
                 {/* 推荐项 2 */}
-                <div className="flex items-center justify-between p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all">
+                <div className="flex items-center justify-between p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all cursor-pointer" onClick={() => showToast("已选择推荐：李四 → 编程手（置信度 88%）", "success")}>
                   <div className="flex items-center gap-3">
                     <Avatar className="w-10 h-10">
                       <AvatarFallback className="bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 text-white font-bold">
@@ -261,7 +261,7 @@ export default function TeamPage() {
                 </div>
 
                 {/* 推荐项 3 */}
-                <div className="flex items-center justify-between p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all">
+                <div className="flex items-center justify-between p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all cursor-pointer" onClick={() => showToast("已选择推荐：王五 → 论文手（置信度 92%）", "success")}>
                   <div className="flex items-center gap-3">
                     <Avatar className="w-10 h-10">
                       <AvatarFallback className="bg-gradient-to-br from-pink-500 to-pink-600 text-white font-bold">

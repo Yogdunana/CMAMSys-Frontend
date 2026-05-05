@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   FileText,
@@ -241,7 +240,7 @@ const fileTree: FileTreeNodeType = {
   ],
 };
 
-function FileTreeNode({ node, depth = 0 }: { node: FileTreeNodeType; depth?: number }) {
+function FileTreeNode({ node, depth = 0, onFileClick }: { node: FileTreeNodeType; depth?: number; onFileClick?: (name: string) => void }) {
   const [expanded, setExpanded] = useState(depth < 2);
   const isFolder = node.type === "folder";
 
@@ -250,7 +249,13 @@ function FileTreeNode({ node, depth = 0 }: { node: FileTreeNodeType; depth?: num
       <div
         className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-white/60 cursor-pointer transition-colors group"
         style={{ paddingLeft: `${depth * 20 + 8}px` }}
-        onClick={() => isFolder && setExpanded(!expanded)}
+        onClick={() => {
+          if (isFolder) {
+            setExpanded(!expanded);
+          } else {
+            onFileClick?.(node.name);
+          }
+        }}
       >
         {isFolder ? (
           <>
@@ -273,7 +278,7 @@ function FileTreeNode({ node, depth = 0 }: { node: FileTreeNodeType; depth?: num
       {isFolder && expanded && node.children && (
         <div>
           {node.children.map((child, index) => (
-            <FileTreeNode key={index} node={child} depth={depth + 1} />
+            <FileTreeNode key={index} node={child} depth={depth + 1} onFileClick={onFileClick} />
           ))}
         </div>
       )}
@@ -288,6 +293,8 @@ export default function WorkspacePage() {
     time: string;
     entries: number;
   } | null>(null);
+  const [coreFileDialog, setCoreFileDialog] = useState<string | null>(null);
+  const selectedCoreFile = coreFiles.find((f) => f.name === coreFileDialog) ?? null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/30">
@@ -321,59 +328,41 @@ export default function WorkspacePage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {coreFiles.map((file) => (
-              <Dialog key={file.name}>
-                <DialogTrigger
-                  render={<Card className="group border-0 bg-white/60 backdrop-blur-xl shadow-lg shadow-purple-500/5 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full" />}
-                >
-                  <CardHeader>
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${file.gradient} flex items-center justify-center shadow-lg`}
-                        >
-                          <file.icon className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-base group-hover:text-purple-600 transition-colors">
-                            {file.name}
-                          </CardTitle>
-                          <Badge variant="secondary" className="mt-1 bg-purple-50 text-purple-600">
-                            {file.label}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-3">{file.description}</p>
-                      <div className="bg-slate-50/80 rounded-lg p-3 border border-slate-100">
-                        <pre className="text-xs text-slate-500 whitespace-pre-wrap font-mono line-clamp-4">
-                          {file.preview}
-                        </pre>
-                      </div>
-                      <div className="flex items-center gap-1 mt-3 text-xs text-purple-500">
-                        <span>点击查看完整内容</span>
-                        <ChevronRight className="w-3 h-3" />
-                      </div>
-                    </CardContent>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
+              <Card
+                key={file.name}
+                className="group border-0 bg-white/60 backdrop-blur-xl shadow-lg shadow-purple-500/5 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full"
+                onClick={() => setCoreFileDialog(file.name)}
+              >
+                <CardHeader>
+                    <div className="flex items-center gap-3">
                       <div
-                        className={`w-8 h-8 rounded-lg bg-gradient-to-br ${file.gradient} flex items-center justify-center`}
+                        className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${file.gradient} flex items-center justify-center shadow-lg`}
                       >
-                        <file.icon className="w-4 h-4 text-white" />
+                        <file.icon className="w-6 h-6 text-white" />
                       </div>
-                      {file.name}
-                    </DialogTitle>
-                    <DialogDescription>{file.description}</DialogDescription>
-                  </DialogHeader>
-                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                    <pre className="text-sm text-slate-700 whitespace-pre-wrap font-mono leading-relaxed">
-                      {file.fullContent}
-                    </pre>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                      <div>
+                        <CardTitle className="text-base group-hover:text-purple-600 transition-colors">
+                          {file.name}
+                        </CardTitle>
+                        <Badge variant="secondary" className="mt-1 bg-purple-50 text-purple-600">
+                          {file.label}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-3">{file.description}</p>
+                    <div className="bg-slate-50/80 rounded-lg p-3 border border-slate-100">
+                      <pre className="text-xs text-slate-500 whitespace-pre-wrap font-mono line-clamp-4">
+                        {file.preview}
+                      </pre>
+                    </div>
+                    <div className="flex items-center gap-1 mt-3 text-xs text-purple-500">
+                      <span>点击查看完整内容</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </div>
+                  </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -518,7 +507,7 @@ export default function WorkspacePage() {
           <Card className="border-0 bg-white/60 backdrop-blur-xl shadow-lg shadow-blue-500/5">
             <CardContent className="p-5">
               <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-100 font-mono">
-                <FileTreeNode node={fileTree} />
+                <FileTreeNode node={fileTree} onFileClick={(name) => showToast(`已选择文件: ${name}`, "info")} />
               </div>
               <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
@@ -538,6 +527,30 @@ export default function WorkspacePage() {
           </Card>
         </div>
       </div>
+
+      {/* 核心文件对话框 */}
+      <Dialog open={!!coreFileDialog} onOpenChange={(open) => !open && setCoreFileDialog(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedCoreFile && (
+                <div
+                  className={`w-8 h-8 rounded-lg bg-gradient-to-br ${selectedCoreFile.gradient} flex items-center justify-center`}
+                >
+                  <selectedCoreFile.icon className="w-4 h-4 text-white" />
+                </div>
+              )}
+              {selectedCoreFile?.name}
+            </DialogTitle>
+            <DialogDescription>{selectedCoreFile?.description}</DialogDescription>
+          </DialogHeader>
+          <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
+            <pre className="text-sm text-slate-700 whitespace-pre-wrap font-mono leading-relaxed">
+              {selectedCoreFile?.fullContent}
+            </pre>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 记忆文件对话框 */}
       <Dialog open={!!memoryDialog} onOpenChange={(open) => !open && setMemoryDialog(null)}>

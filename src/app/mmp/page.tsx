@@ -346,6 +346,15 @@ export default function MmpPage() {
                   key={chapter.id}
                   className="border-0 bg-white/60 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                   onClick={() => setExpandedChapter(isExpanded ? null : chapter.id)}
+                  tabIndex={0}
+                  role="button"
+                  aria-expanded={isExpanded}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setExpandedChapter(isExpanded ? null : chapter.id);
+                    }
+                  }}
                 >
                   <CardContent className="p-5">
                     <div className="flex items-start gap-3">
