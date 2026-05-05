@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/toast";
 import {
   Dialog,
   DialogContent,
@@ -281,6 +282,13 @@ function FileTreeNode({ node, depth = 0 }: { node: FileTreeNodeType; depth?: num
 }
 
 export default function WorkspacePage() {
+  const { showToast } = useToast();
+  const [memoryDialog, setMemoryDialog] = useState<{
+    name: string;
+    time: string;
+    entries: number;
+  } | null>(null);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/30">
       {/* 装饰背景 */}
@@ -480,6 +488,7 @@ export default function WorkspacePage() {
                     <div
                       key={index}
                       className="flex items-center gap-3 bg-slate-50/80 rounded-lg p-3 border border-slate-100 hover:bg-white/80 transition-colors cursor-pointer"
+                      onClick={() => setMemoryDialog(file)}
                     >
                       <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -529,6 +538,48 @@ export default function WorkspacePage() {
           </Card>
         </div>
       </div>
+
+      {/* 记忆文件对话框 */}
+      <Dialog open={!!memoryDialog} onOpenChange={(open) => !open && setMemoryDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-500" />
+              {memoryDialog?.name}
+            </DialogTitle>
+            <DialogDescription>
+              记录时间：{memoryDialog?.time} | 共 {memoryDialog?.entries} 条记忆
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-100">
+            <pre className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+              {`# ${memoryDialog?.name}
+
+## 会话记录摘要
+
+### 用户提问记录
+1. 讨论了SEIR模型的参数选择问题
+2. 询问了蒙特卡洛模拟的收敛性判断方法
+3. 探讨了模型灵敏度分析的最佳实践
+
+### AI建议记录
+1. 推荐使用自适应步长的Runge-Kutta方法
+2. 建议增加参数边界约束
+3. 提供了可视化代码模板
+
+### 关键决策
+- 确定使用混合模型方案（SEIR + 元胞自动机）
+- 参数拟合采用贝叶斯推断方法
+- 模型验证使用交叉验证策略
+
+### 待跟进事项
+- 补充模型局限性讨论
+- 完善图表标注格式
+- 添加代码注释文档`}
+            </pre>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -7,6 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress, ProgressTrack, ProgressIndicator, ProgressLabel, ProgressValue } from "@/components/ui/progress";
+import { useToast } from "@/components/ui/toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   BookOpen,
   Brain,
@@ -152,11 +160,24 @@ const filterBadges = [
 export default function KnowledgePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<string[]>(["2024"]);
+  const { showToast } = useToast();
+  const [detailDialog, setDetailDialog] = useState<{
+    title: string;
+    content: string;
+  } | null>(null);
 
   const toggleFilter = (label: string) => {
     setActiveFilters((prev) =>
       prev.includes(label) ? prev.filter((f) => f !== label) : [...prev, label]
     );
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      showToast(`正在搜索"${searchQuery}"，找到 ${Math.floor(Math.random() * 50 + 10)} 条相关结果`, "success");
+    } else {
+      showToast("请输入搜索关键词", "warning");
+    }
   };
 
   return (
@@ -226,7 +247,7 @@ export default function KnowledgePage() {
                   className="pl-10 h-11 bg-white/80 border-blue-100 focus:border-blue-300 rounded-xl"
                 />
               </div>
-              <Button className="h-11 px-6 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl shadow-lg shadow-blue-500/25">
+              <Button className="h-11 px-6 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl shadow-lg shadow-blue-500/25" onClick={handleSearch}>
                 <Search className="w-4 h-4 mr-2" />
                 搜索
               </Button>
@@ -284,6 +305,10 @@ export default function KnowledgePage() {
                 <Card
                   key={index}
                   className="group border-0 bg-white/60 backdrop-blur-xl shadow-lg shadow-blue-500/5 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                  onClick={() => setDetailDialog({
+                    title: paper.title,
+                    content: `奖项：${paper.award}\n年份：${paper.year}\n标签：${paper.tags.join("、")}\n\n${paper.description}\n\n该论文框架结构清晰，模型创新性强，适合作为数学建模竞赛的参考模板。论文包含完整的问题分析、模型建立、求解验证和结果讨论等章节。`,
+                  })}
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between">
@@ -331,6 +356,10 @@ export default function KnowledgePage() {
                 <Card
                   key={index}
                   className="group border-0 bg-white/60 backdrop-blur-xl shadow-lg shadow-purple-500/5 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                  onClick={() => setDetailDialog({
+                    title: approach.title,
+                    content: `分类：${approach.category}\n难度：${approach.difficulty}\n被引用次数：${approach.usage}\n\n${approach.description}\n\n该思路提供了完整的建模方法论，包含数学模型推导、算法实现步骤和参数调优建议。`,
+                  })}
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
@@ -378,6 +407,10 @@ export default function KnowledgePage() {
                 <Card
                   key={index}
                   className="group border-0 bg-white/60 backdrop-blur-xl shadow-lg shadow-amber-500/5 hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+                  onClick={() => setDetailDialog({
+                    title: caseItem.team,
+                    content: `竞赛：${caseItem.competition}\n奖项：${caseItem.score}\n成员：${caseItem.members}\n亮点：${caseItem.highlights}\n模型：${caseItem.model}\n\n该团队在竞赛中展现了出色的协作能力和创新思维，其方案具有较高的参考价值。`,
+                  })}
                 >
                   <CardHeader>
                     <div className="flex items-center gap-2 mb-2">
@@ -472,6 +505,21 @@ export default function KnowledgePage() {
           </Card>
         </div>
       </div>
+
+      {/* 详情对话框 */}
+      <Dialog open={!!detailDialog} onOpenChange={(open) => !open && setDetailDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{detailDialog?.title}</DialogTitle>
+            <DialogDescription>详细信息</DialogDescription>
+          </DialogHeader>
+          <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-100">
+            <pre className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+              {detailDialog?.content}
+            </pre>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

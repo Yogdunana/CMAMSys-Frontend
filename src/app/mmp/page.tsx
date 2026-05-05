@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/components/ui/toast";
 import {
   FileCode,
   FileText,
@@ -260,6 +261,7 @@ const operationRules = [
 export default function MmpPage() {
   const [expandedChapter, setExpandedChapter] = useState<number | null>(null);
   const [showFullFile, setShowFullFile] = useState(false);
+  const { showToast } = useToast();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-blue-50/30">
@@ -398,6 +400,10 @@ export default function MmpPage() {
             <Badge className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white border-0">
               2024 MCM Problem C
             </Badge>
+            <Button size="sm" className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white" onClick={() => showToast("PDF导出功能开发中", "info")}>
+              <Download className="w-4 h-4 mr-1.5" />
+              导出PDF
+            </Button>
           </div>
           <Card className="border-0 bg-white/60 backdrop-blur-xl shadow-lg overflow-hidden">
             <CardContent className="p-0">

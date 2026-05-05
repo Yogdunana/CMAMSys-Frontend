@@ -14,9 +14,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useToast } from "@/components/ui/toast"
 
 export default function WorkflowPage() {
   const [activeTab, setActiveTab] = useState("modeler")
+  const { showToast } = useToast()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-950 dark:to-indigo-950">
@@ -570,7 +572,7 @@ plt.show()`}
                       <p className="text-xs text-gray-300 leading-relaxed">
                         检测到你可能需要添加敏感性分析代码，是否自动生成？
                       </p>
-                      <Button size="sm" className="mt-2 w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-xs h-7">
+                      <Button size="sm" className="mt-2 w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-xs h-7" onClick={() => showToast("敏感性分析代码已生成并插入编辑器！", "success")}>
                         <Sparkles className="w-3 h-3 mr-1" />
                         自动生成
                       </Button>
@@ -634,11 +636,11 @@ plt.show()`}
                       <Badge variant="secondary" className="text-xs">第五章: 模型建立</Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" className="text-xs">
+                      <Button size="sm" variant="ghost" className="text-xs" onClick={() => showToast("AI润色完成，已优化3处表达", "success")}>
                         <Bot className="w-3 h-3 mr-1" />
                         AI润色
                       </Button>
-                      <Button size="sm" variant="ghost" className="text-xs">
+                      <Button size="sm" variant="ghost" className="text-xs" onClick={() => showToast("论文已保存", "success")}>
                         保存
                       </Button>
                     </div>

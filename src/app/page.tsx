@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import {
   Users,
   Trophy,
@@ -25,6 +26,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 interface AdvantageCard {
   icon: React.ReactNode;
@@ -142,6 +152,10 @@ const getActivityTypeColor = (type: ActivityItem["type"]) => {
 };
 
 export default function Home() {
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [advantageDialog, setAdvantageDialog] = useState<AdvantageCard | null>(null);
+
   return (
     <div className="min-h-full bg-gradient-bg-mesh">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -164,6 +178,7 @@ export default function Home() {
               <Button
                 size="lg"
                 className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg shadow-white/20"
+                onClick={() => router.push("/workflow")}
               >
                 开始建模
                 <ArrowRight className="ml-2 size-4" />
@@ -172,6 +187,7 @@ export default function Home() {
                 size="lg"
                 variant="outline"
                 className="border-white/30 text-white hover:bg-white/10"
+                onClick={() => showToast("教程功能开发中，敬请期待！", "info")}
               >
                 查看教程
               </Button>
@@ -235,7 +251,7 @@ export default function Home() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-foreground">系统核心优势</h2>
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
+            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setAdvantageDialog(advantageCards[0])}>
               了解更多
               <ArrowRight className="ml-1 size-3.5" />
             </Button>
@@ -246,8 +262,9 @@ export default function Home() {
                 key={index}
                 className={cn(
                   "group relative overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-md",
-                  "transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  "transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
                 )}
+                onClick={() => setAdvantageDialog(card)}
               >
                 <CardContent className="relative p-5">
                   <div
@@ -279,7 +296,7 @@ export default function Home() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-foreground">最近活动</h2>
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
+            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => router.push("/knowledge")}>
               查看全部
               <ArrowRight className="ml-1 size-3.5" />
             </Button>
@@ -337,6 +354,29 @@ export default function Home() {
           </Card>
         </div>
       </div>
+
+      {/* 优势详情对话框 */}
+      <Dialog open={!!advantageDialog} onOpenChange={(open) => !open && setAdvantageDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {advantageDialog && <div className="text-primary">{advantageDialog.icon}</div>}
+              {advantageDialog?.title}
+            </DialogTitle>
+            <DialogDescription>{advantageDialog?.description}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {advantageDialog?.title === "多AI模型协作" && "CMAMSys集成了GPT-4、Claude、DeepSeek等多个主流AI模型，通过三轮辩论机制让不同模型独立思考、人机融合、同伴互评，最终选出最优方案，大幅提升建模效率和质量。"}
+              {advantageDialog?.title === "三层机制设计" && "系统采用模型层（AI模型协作）、协作层（团队分工与沟通）、应用层（知识库、Card、MMP）三层架构，每一层都有明确的职责和接口，形成系统化的建模流程。"}
+              {advantageDialog?.title === "完整数据流" && "从问题分析、思路研讨、代码实现到结果审核，全流程数据可追溯。每个环节都有详细的记录和版本管理，确保建模过程的透明性和可复现性。"}
+              {advantageDialog?.title === "知识沉淀" && "系统自动将建模过程中的优秀方案、解题思路、代码模式等知识进行提取和分类，形成可复用的知识库，为未来的建模任务提供参考和灵感。"}
+              {advantageDialog?.title === "区块链存证" && "关键操作和成果通过IPFS+区块链时间戳进行存证，确保数据不可篡改。能力Card和MMP文件均有唯一标识，可通过多种途径验证真实性。"}
+              {advantageDialog?.title === "MMP全记录" && "MMP(MathModel Project)文件记录了数学建模竞赛的全流程操作，包括题目解析、思路研讨、代码记录、结果审核、论文版本等8大核心章节，支持完整回溯与复盘。"}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SidebarLayout } from "@/components/layout/sidebar";
+import { ToastProvider } from "@/components/ui/toast";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -30,7 +31,9 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <SidebarLayout>{children}</SidebarLayout>
+        <ToastProvider>
+          <SidebarLayout>{children}</SidebarLayout>
+        </ToastProvider>
       </body>
     </html>
   );

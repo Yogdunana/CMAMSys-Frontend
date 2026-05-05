@@ -1,13 +1,37 @@
 "use client"
 
-import { Brain, Code, PenTool, Bot, UserPlus, Sparkles, Users, Shield, Zap } from "lucide-react"
+import { useState } from "react"
+import { Brain, Code, PenTool, Bot, UserPlus, Sparkles, Users, Shield, Zap, Copy, Check } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { useToast } from "@/components/ui/toast"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 
 export default function TeamPage() {
+  const { showToast } = useToast()
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const inviteLink = "https://cmamsys.app/invite/TM-2024-0042"
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      setCopied(true)
+      showToast("邀请链接已复制到剪贴板！", "success")
+      setTimeout(() => setCopied(false), 2000)
+    }).catch(() => {
+      showToast("邀请链接: " + inviteLink, "info")
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 dark:from-gray-900 dark:via-purple-950 dark:to-violet-950">
       {/* 背景装饰 */}
@@ -262,11 +286,11 @@ export default function TeamPage() {
             </div>
           </CardContent>
           <CardFooter className="gap-3">
-            <Button className="flex-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 shadow-lg">
+            <Button className="flex-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 shadow-lg" onClick={() => showToast("已应用AI推荐的角色分配方案！", "success")}>
               <Sparkles className="w-4 h-4 mr-2" />
               应用推荐
             </Button>
-            <Button variant="outline" className="flex-1">
+            <Button variant="outline" className="flex-1" onClick={() => showToast("手动调整模式已开启", "info")}>
               手动调整
             </Button>
           </CardFooter>
@@ -280,7 +304,7 @@ export default function TeamPage() {
                 <CardTitle className="text-xl">团队成员</CardTitle>
                 <CardDescription>管理团队成员及其角色</CardDescription>
               </div>
-              <Button className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600">
+              <Button className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600" onClick={() => setInviteDialogOpen(true)}>
                 <UserPlus className="w-4 h-4 mr-2" />
                 邀请成员
               </Button>
@@ -411,6 +435,30 @@ export default function TeamPage() {
           </div>
         </div>
       </div>
+
+      {/* 邀请成员对话框 */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-violet-500" />
+              邀请成员
+            </DialogTitle>
+            <DialogDescription>分享以下邀请链接给团队成员，即可加入「数模之星队」</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 p-3 bg-violet-50 dark:bg-violet-950/30 rounded-lg border border-violet-200 dark:border-violet-800">
+              <span className="text-sm text-violet-700 dark:text-violet-300 flex-1 truncate font-mono">{inviteLink}</span>
+              <Button size="sm" variant="outline" onClick={handleCopyLink}>
+                {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              链接有效期为7天，最多可邀请4名成员加入团队。
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

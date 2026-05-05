@@ -6,6 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Progress, ProgressTrack, ProgressIndicator, ProgressLabel, ProgressValue } from "@/components/ui/progress";
+import { useToast } from "@/components/ui/toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Award,
   Shield,
@@ -305,6 +313,9 @@ function AbilityCard({
 }
 
 export default function CardPage() {
+  const { showToast } = useToast();
+  const [verifyDialog, setVerifyDialog] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-purple-50/30">
       {/* 装饰背景 */}
@@ -330,8 +341,25 @@ export default function CardPage() {
         </div>
 
         {/* 主Card展示 */}
-        <div className="mb-12">
+        <div className="mb-4">
           <AbilityCard card={mainCard} size="large" />
+        </div>
+        {/* 操作按钮 */}
+        <div className="flex justify-center gap-3 mb-12">
+          <Button className="bg-gradient-to-r from-amber-500 to-purple-500 hover:from-amber-600 hover:to-purple-600 text-white" onClick={() => setVerifyDialog(true)}>
+            <Shield className="w-4 h-4 mr-2" />
+            验证Card
+          </Button>
+          <Button variant="outline" onClick={() => {
+            navigator.clipboard.writeText("https://cmamsys.app/card/#A3F9D2").then(() => {
+              showToast("Card分享链接已复制到剪贴板！", "success");
+            }).catch(() => {
+              showToast("分享链接: https://cmamsys.app/card/#A3F9D2", "info");
+            });
+          }}>
+            <QrCode className="w-4 h-4 mr-2" />
+            分享
+          </Button>
         </div>
 
         {/* 评分体系说明 */}
@@ -553,6 +581,54 @@ export default function CardPage() {
           </div>
         </div>
       </div>
+
+      {/* 验证Card对话框 */}
+      <Dialog open={verifyDialog} onOpenChange={setVerifyDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-cyan-500" />
+              Card 验证信息
+            </DialogTitle>
+            <DialogDescription>验证该能力Card的真实性与完整性</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              <div>
+                <div className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">验证通过</div>
+                <div className="text-xs text-muted-foreground">该Card已通过区块链存证验证</div>
+              </div>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Card ID</span>
+                <span className="font-mono text-xs">#A3F9D2</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">持有人</span>
+                <span>张三</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">认证等级</span>
+                <span>CMAMSys Level 3</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">协作指数</span>
+                <span>87/100</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">IPFS Hash</span>
+                <span className="font-mono text-xs truncate max-w-[200px]">QmX7bKz8h3nR5pW2mN4k...</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">存证时间</span>
+                <span>2024-02-05 09:00:00 UTC</span>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
