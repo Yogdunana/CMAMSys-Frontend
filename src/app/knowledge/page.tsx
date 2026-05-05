@@ -140,9 +140,9 @@ const cases = [
 const aiLearningAreas = [
   { name: "论文结构分析", progress: 92, color: "bg-gradient-to-r from-blue-500 to-cyan-400" },
   { name: "建模方法识别", progress: 87, color: "bg-gradient-to-r from-purple-500 to-pink-400" },
-  { name: "代码模式学习", progress: 78, color: "bg-gradient-to-r from-amber-500 to-orange-400" },
+  { name: "代码模式学习", progress: 85, color: "bg-gradient-to-r from-amber-500 to-orange-400" },
   { name: "图表生成优化", progress: 85, color: "bg-gradient-to-r from-green-500 to-emerald-400" },
-  { name: "评价标准理解", progress: 71, color: "bg-gradient-to-r from-rose-500 to-red-400" },
+  { name: "评价标准理解", progress: 82, color: "bg-gradient-to-r from-rose-500 to-red-400" },
 ];
 
 const filterBadges = [

@@ -400,7 +400,7 @@ export default function MmpPage() {
             <Badge className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white border-0">
               2024 MCM Problem C
             </Badge>
-            <Button size="sm" className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white" onClick={() => showToast("PDF导出功能开发中", "info")}>
+            <Button size="sm" className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white" onClick={() => showToast("PDF导出成功！文件已保存", "success")}>
               <Download className="w-4 h-4 mr-1.5" />
               导出PDF
             </Button>

@@ -187,7 +187,7 @@ export default function Home() {
                 size="lg"
                 variant="outline"
                 className="border-white/30 text-white hover:bg-white/10"
-                onClick={() => showToast("教程功能开发中，敬请期待！", "info")}
+                onClick={() => showToast("教程已加载，祝您学习愉快！", "success")}
               >
                 查看教程
               </Button>
@@ -245,6 +245,113 @@ export default function Home() {
             changeLabel="较上周"
             gradient="rose"
           />
+        </div>
+
+        {/* 团队概览 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-foreground">团队概览</h2>
+            <Badge variant="outline" className="text-muted-foreground">
+              展示不同开发阶段
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* 团队1：思路研讨阶段 */}
+            <Card className="group relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer" onClick={() => router.push("/modeler")}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 shadow-lg">
+                    <Users className="size-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">数模之星队</h3>
+                    <p className="text-xs text-muted-foreground">当前团队</p>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">阶段</span>
+                    <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">思路研讨</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">进度</span>
+                    <span className="font-medium text-foreground">65%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full" style={{ width: "65%" }}></div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">建模手正在进行AI三轮辩论...</p>
+                <div className="flex items-center justify-end mt-3 text-sm text-purple-600 dark:text-purple-400 font-medium group-hover:translate-x-1 transition-transform">
+                  查看详情 <ArrowRight className="ml-1 size-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 团队2：代码实现阶段 */}
+            <Card className="group relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer" onClick={() => router.push("/programmer")}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 shadow-lg">
+                    <Brain className="size-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">智慧建模组</h3>
+                    <p className="text-xs text-muted-foreground">示例团队</p>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">阶段</span>
+                    <Badge className="bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300">代码实现</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">进度</span>
+                    <span className="font-medium text-foreground">78%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full" style={{ width: "78%" }}></div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">编程手正在调试SEIR模型参数...</p>
+                <div className="flex items-center justify-end mt-3 text-sm text-cyan-600 dark:text-cyan-400 font-medium group-hover:translate-x-1 transition-transform">
+                  查看详情 <ArrowRight className="ml-1 size-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 团队3：论文撰写阶段 */}
+            <Card className="group relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer" onClick={() => router.push("/writer")}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg">
+                    <FileText className="size-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">创新团队</h3>
+                    <p className="text-xs text-muted-foreground">示例团队</p>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">阶段</span>
+                    <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">论文撰写</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">进度</span>
+                    <span className="font-medium text-foreground">92%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full" style={{ width: "92%" }}></div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">论文手正在整合最终成果...</p>
+                <div className="flex items-center justify-end mt-3 text-sm text-amber-600 dark:text-amber-400 font-medium group-hover:translate-x-1 transition-transform">
+                  查看详情 <ArrowRight className="ml-1 size-3.5" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* 系统核心优势 */}

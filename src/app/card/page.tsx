@@ -59,7 +59,7 @@ const mainCard = {
   year: "2024",
   competitions: [
     { name: "2024 MCM-C 竞赛", role: "建模手", score: "Outstanding Winner" },
-    { name: "2025 MCM-A 竞赛", role: "建模手", score: "进行中" },
+    { name: "2025 MCM-A 竞赛", role: "建模手", score: "参赛中" },
   ],
   aiEvaluation:
     "综合能力优秀。建模思路清晰，善于将复杂问题分解为可处理的子问题。创新性地将自适应网格搜索应用于SEIR模型参数拟合，显著提升了拟合精度。团队协作意识强，能主动与编程手和论文手沟通。建议加强编程实现能力。",
