@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/toast"
 import { cn } from "@/lib/utils"
+import { logMMP } from "@/lib/mmp-logger"
 
 /* ============================================================
    Monaco Editor - 动态导入避免 SSR 问题
@@ -708,9 +709,11 @@ export default function ProgrammerPage() {
     if (isRunning) {
       setIsRunning(false)
       showToast("运行已停止", "warning")
+      logMMP({ role: "coder", action: "run_code", description: "手动中断代码运行" })
       return
     }
     setIsRunning(true)
+    logMMP({ role: "coder", action: "run_code", description: "运行代码脚本" })
     setTerminalLines([])
     let idx = 0
     const interval = setInterval(() => {
@@ -829,7 +832,7 @@ export default function ProgrammerPage() {
                 size="sm"
                 variant="ghost"
                 className="text-gray-400 hover:text-yellow-400 hover:bg-gray-800 text-xs h-7 px-3 gap-1"
-                onClick={() => showToast("调试模式已启动", "info")}
+                onClick={() => { showToast("调试模式已启动", "info"); logMMP({ role: "coder", action: "debug", description: "进入调试模式" }) }}
               >
                 <Bug className="w-3 h-3" />
                 调试
@@ -838,7 +841,7 @@ export default function ProgrammerPage() {
                 size="sm"
                 variant="ghost"
                 className="text-gray-400 hover:text-white hover:bg-gray-800 text-xs h-7 px-3 gap-1"
-                onClick={() => showToast("文件已保存", "success")}
+                onClick={() => { showToast("文件已保存", "success"); logMMP({ role: "coder", action: "save", description: "保存代码文件" }) }}
               >
                 <Save className="w-3 h-3" />
                 保存

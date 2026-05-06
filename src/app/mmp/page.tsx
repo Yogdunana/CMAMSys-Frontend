@@ -1,762 +1,787 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { QRCodeSVG } from "qrcode.react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 import {
-  FileCode,
-  FileText,
-  Shield,
-  Brain,
-  Code,
-  CheckCircle,
-  Image,
-  Star,
-  Archive,
-  Fingerprint,
-  Lock,
-  Unlock,
-  Download,
-  AlertTriangle,
-  CheckCircle2,
-  Info,
+  Activity,
+  Blocks,
+  Boxes,
+  Check,
   ChevronDown,
   ChevronUp,
-  BookOpen,
-  MessageSquare,
-  Terminal,
-  ClipboardCheck,
-  FileImage,
-  Sparkles,
-  History,
+  Copy,
+  Database,
+  Download,
+  ExternalLink,
+  FileCode,
+  Fingerprint,
   Hash,
-  Users,
-  Calendar,
-  Cpu,
-  Eye,
+  Info,
   Layers,
-  Link,
-  Pause,
-  Play,
+  Link2,
+  Lock,
+  RefreshCw,
+  Search,
+  Shield,
+  Sparkles,
   Trash2,
-  FileDown,
-  Activity,
-  Bot,
-  User,
-  AlertCircle,
-  CircleDot,
+  Zap,
 } from "lucide-react";
+import {
+  readMMPLog,
+  clearMMPLog,
+  exportMMPFile,
+  seedIfEmpty,
+  calcMMPFileHash,
+  MMPLogEntry,
+  MMPRole,
+} from "@/lib/mmp-logger";
 
+/* ------------------------------------------------------------------ */
+/*  常量 & 视觉映射                                                    */
+/* ------------------------------------------------------------------ */
+const ROLE_COLORS: Record<MMPRole, string> = {
+  modeler: "from-blue-500 to-indigo-600",
+  coder: "from-purple-500 to-violet-600",
+  writer: "from-orange-500 to-amber-600",
+  system: "from-gray-500 to-slate-600",
+  leader: "from-emerald-500 to-teal-600",
+};
+
+const ROLE_BADGE: Record<MMPRole, string> = {
+  modeler: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  coder:
+    "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+  writer:
+    "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
+  system: "bg-gray-100 text-gray-700 dark:bg-gray-800/60 dark:text-gray-300",
+  leader:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+};
+
+const ROLE_FILTERS: { value: "all" | MMPRole; label: string }[] = [
+  { value: "all", label: "全部" },
+  { value: "modeler", label: "建模手" },
+  { value: "coder", label: "编程手" },
+  { value: "writer", label: "论文手" },
+  { value: "leader", label: "队长" },
+  { value: "system", label: "系统" },
+];
+
+/* ------------------------------------------------------------------ */
+/*  章节静态数据（保留原设计，作为下方展示）                             */
+/* ------------------------------------------------------------------ */
 const mmpChapters = [
   {
     id: 1,
-    icon: Hash,
     title: "文件头部信息",
-    description: "记录文件唯一标识、关联竞赛、团队信息和系统版本",
+    description: "UUID、关联竞赛、团队信息和系统版本",
     gradient: "from-blue-500 to-cyan-400",
     fields: [
       { label: "UUID", value: "a3f9d2e8-4b7c-4f1a-9d3e-5c8b2a1f6e4d" },
       { label: "关联竞赛", value: "2024 MCM Problem C" },
       { label: "团队名称", value: "AlphaStar" },
       { label: "系统版本", value: "CMAMSys v2.1.0" },
-      { label: "创建时间", value: "2024-02-01 20:00:00 UTC" },
     ],
   },
   {
     id: 2,
-    icon: BookOpen,
     title: "题目信息",
-    description: "存储题目原文、AI解析结果和修改记录",
+    description: "题目原文、AI 解析结果和修改记录",
     gradient: "from-purple-500 to-violet-400",
     fields: [
-      { label: "题目原文", value: "Momentum in Tennis: Simulating the dynamics of a tennis match..." },
-      { label: "AI解析", value: "核心问题：网球比赛动量建模。子问题：动量定义、影响因素、预测模型、策略建议" },
-      { label: "关键词提取", value: "动量, 网球, 马尔可夫链, 蒙特卡洛模拟, 时间序列" },
-      { label: "修改记录", value: "v1: 初始解析 | v2: 补充数据源建议 | v3: 细化子问题" },
+      { label: "核心问题", value: "网球比赛动量建模" },
+      { label: "关键词", value: "动量, 马尔可夫链, 蒙特卡洛" },
+      { label: "修改记录", value: "v1 → v2 → v3（细化子问题）" },
     ],
   },
   {
     id: 3,
-    icon: MessageSquare,
     title: "思路研讨记录",
-    description: "记录研讨时间、AI素材、讨论内容和思路迭代过程",
+    description: "研讨时间、AI 素材、讨论内容和思路迭代",
     gradient: "from-pink-500 to-rose-400",
     fields: [
-      { label: "研讨时间", value: "2024-02-01 20:30 - 2024-02-02 02:15 (共5小时45分)" },
-      { label: "AI素材引用", value: "知识库条目 #3421, #5678, #9012" },
-      { label: "思路迭代", value: "v1: 统计回归 → v2: 马尔可夫链 → v3: 混合模型(马尔可夫+ML)" },
-      { label: "讨论摘要", value: "团队讨论了3种建模方案，最终选择混合模型方案，兼顾可解释性和预测精度" },
+      { label: "研讨时长", value: "5 小时 45 分钟" },
+      { label: "AI 素材引用", value: "#3421, #5678, #9012" },
+      { label: "思路迭代", value: "统计回归 → 马尔可夫链 → 混合模型" },
     ],
   },
   {
     id: 4,
-    icon: Code,
     title: "代码记录",
-    description: "记录代码版本、AI校验结果和运行日志",
+    description: "代码版本、AI 校验结果和运行日志",
     gradient: "from-green-500 to-emerald-400",
     fields: [
-      { label: "代码版本", value: "v1.0 → v1.1 → v2.0 (共3个版本)" },
-      { label: "AI校验", value: "v2.0通过：代码规范✓ 算法正确性✓ 边界条件✓ 性能优化✓" },
-      { label: "运行日志", value: "v2.0: 运行时间 12.3s, 内存 256MB, 无报错" },
-      { label: "依赖清单", value: "numpy, scipy, pandas, matplotlib, scikit-learn" },
+      { label: "版本", value: "v1.0 → v1.1 → v2.0" },
+      { label: "AI 校验", value: "通过（规范✓ 算法✓ 性能✓）" },
+      { label: "运行", value: "12.3s / 256MB / 无报错" },
     ],
   },
   {
     id: 5,
-    icon: ClipboardCheck,
     title: "结果审核记录",
-    description: "记录审核人、审核记录和最终结果确认",
+    description: "审核人、审核记录和最终结果确认",
     gradient: "from-amber-500 to-orange-400",
     fields: [
-      { label: "审核人", value: "AI Reviewer + 人工复核" },
-      { label: "审核记录", value: "模型合理性✓ 结果一致性✓ 敏感性分析✓ 图表规范✓" },
-      { label: "问题标记", value: "1个警告：图3坐标轴标签需统一格式" },
-      { label: "最终结果", value: "审核通过，已修正图3标签" },
+      { label: "审核方式", value: "AI Reviewer + 人工复核" },
+      { label: "审核结果", value: "通过（92/100）" },
+      { label: "警告", value: "图 3 坐标轴标签已统一" },
     ],
   },
   {
     id: 6,
-    icon: FileImage,
     title: "论文与图表记录",
-    description: "记录论文版本迭代和所有图表的生成过程",
+    description: "论文版本迭代和所有图表的生成过程",
     gradient: "from-teal-500 to-cyan-400",
     fields: [
-      { label: "论文版本", value: "v1.0(初稿) → v2.0(修改) → v3.0(终稿)" },
-      { label: "图表数量", value: "共12张图 + 5张表" },
-      { label: "图表记录", value: "每张图表含生成代码、数据来源、修改历史" },
-      { label: "格式检查", value: "LaTeX编译通过，页数24页，附录6页" },
+      { label: "论文版本", value: "v1 → v2 → v3（终稿）" },
+      { label: "图表数量", value: "12 张图 + 5 张表" },
+      { label: "格式检查", value: "LaTeX 编译通过，24 页" },
     ],
   },
   {
     id: 7,
-    icon: Star,
-    title: "AI实时评价记录",
-    description: "记录各AI角色对团队表现的评价和评分",
+    title: "AI 实时评价记录",
+    description: "各 AI 角色对团队表现的评价和评分",
     gradient: "from-indigo-500 to-blue-400",
     fields: [
-      { label: "评价主体", value: "建模导师AI + 编程助手AI + 论文评审AI" },
-      { label: "评分标准", value: "建模创新性(30%) + 代码质量(25%) + 论文表达(25%) + 团队协作(20%)" },
-      { label: "综合评分", value: "92/100 (优秀)" },
-      { label: "各角色评价", value: "建模:95 | 编程:88 | 论文:93 | 协作:91" },
+      { label: "评价主体", value: "建模/编程/论文 三位 AI 导师" },
+      { label: "综合评分", value: "92/100（优秀）" },
+      { label: "细分", value: "建模 95 · 编程 88 · 论文 93" },
     ],
   },
   {
     id: 8,
-    icon: History,
     title: "赛后补充记录",
-    description: "记录脱敏处理、解法库录入和区块链存证信息",
+    description: "脱敏处理、解法库录入和区块链存证信息",
     gradient: "from-rose-500 to-red-400",
     fields: [
-      { label: "脱敏处理", value: "已移除所有个人信息，团队名替换为Team-2024MC-0142" },
-      { label: "解法库录入", value: "已录入知识库，分类：混合模型 > 马尔可夫链 > 体育竞技" },
-      { label: "区块链Card", value: "已生成能力Card，存证ID: #A3F9D2" },
-      { label: "经验总结", value: "混合模型方案效果好，但需注意模型复杂度控制" },
+      { label: "脱敏处理", value: "已替换为 Team-2024MC-0142" },
+      { label: "解法库分类", value: "混合模型 > 马尔可夫链 > 体育" },
+      { label: "链上存证 ID", value: "#A3F9D2" },
     ],
   },
 ];
 
-const sampleMmpContent = `========================================
-  CMAMSys .mmp 文件
-  MathModel Project File
-========================================
-
-[CHAPTER 1] 文件头部信息
-────────────────────────────
-UUID:       a3f9d2e8-4b7c-4f1a-9d3e-5c8b2a1f6e4d
-竞赛:       2024 MCM Problem C
-团队:       AlphaStar (Team-2024MC-0142)
-系统版本:   CMAMSys v2.1.0
-创建时间:   2024-02-01 20:00:00 UTC
-最后更新:   2024-02-05 09:00:00 UTC
-
-[CHAPTER 2] 题目信息
-────────────────────────────
-题目原文:
-  "Momentum in Tennis: Develop a mathematical model that
-   simulates the dynamics of a tennis match, incorporating
-   the concept of momentum..."
-
-AI解析结果:
-  核心问题: 网球比赛动量建模
-  子问题1: 动量的数学定义与量化
-  子问题2: 影响动量的关键因素识别
-  子问题3: 基于动量的比赛结果预测
-  子问题4: 教练策略建议系统
-
-关键词: 动量, 网球, 马尔可夫链, 蒙特卡洛模拟
-
-[CHAPTER 3] 思路研讨记录
-────────────────────────────
-20:30 - 团队阅读题目，初步理解问题
-21:00 - AI助手提供相关文献3篇
-21:30 - 讨论动量定义方案（3种候选）
-22:15 - 确定使用马尔可夫链建模
-23:00 - AI助手提供马尔可夫链教程
-23:45 - 讨论状态空间设计
-00:30 - 确定状态空间：15个状态
-01:00 - 引入机器学习增强模型
-01:45 - 讨论数据来源（ATP官网）
-02:15 - 思路确定：混合模型方案
-
-[CHAPTER 4] 代码记录
-────────────────────────────
-v1.0 (2024-02-02 10:00)
-  - 基础马尔可夫链实现
-  - 使用2018-2023 ATP数据
-  - 运行时间: 8.2s
-
-v1.1 (2024-02-02 16:00)
-  - 添加蒙特卡洛模拟
-  - 优化转移矩阵计算
-  - 运行时间: 10.1s
-
-v2.0 (2024-02-03 14:00)
-  - 集成XGBoost预测模块
-  - 添加敏感性分析
-  - AI校验通过
-  - 运行时间: 12.3s
-
-[CHAPTER 5] 结果审核记录
-────────────────────────────
-审核人: AI Reviewer (自动) + 人工复核
-审核时间: 2024-02-04 10:00
-审核结果: 通过 (92/100)
-
-详细审核:
-  ✓ 模型合理性: 转移概率矩阵非负且行和为1
-  ✓ 结果一致性: 10次蒙特卡洛模拟结果稳定
-  ✓ 敏感性分析: 关键参数±10%范围内结果稳健
-  ✓ 图表规范: 已修正坐标轴标签
-  ⚠ 建议增加模型局限性讨论
-
-[CHAPTER 6-8] 论文/评价/赛后记录
-────────────────────────────
-论文版本: v3.0 (终稿, 24页+6页附录)
-AI综合评价: 92/100 (优秀)
-区块链存证: #A3F9D2
-`;
-
-const operationRules = [
-  {
-    icon: CheckCircle2,
-    type: "success",
-    text: "系统自动生成，实时更新",
-    detail: "所有操作自动记录，无需手动维护",
-  },
-  {
-    icon: AlertTriangle,
-    type: "warning",
-    text: "禁止手动修改核心内容",
-    detail: "核心章节由系统保护，确保数据完整性",
-  },
-  {
-    icon: Download,
-    type: "success",
-    text: "可导出PDF/文本文件",
-    detail: "支持PDF、Markdown、JSON三种导出格式",
-  },
-  {
-    icon: Lock,
-    type: "success",
-    text: "竞赛提交时需一并提交",
-    detail: ".mmp文件作为竞赛成果的重要组成部分",
-  },
-];
-
-// ============ 实时操作日志 ============
-
-type LogType = "info" | "complete" | "warning" | "ai" | "important";
-
-interface LogEntry {
-  id: number;
-  time: string;
-  type: LogType;
-  operator: string;
-  message: string;
-}
-
-const logPool: Omit<LogEntry, "id" | "time">[] = [
-  { type: "info", operator: "系统", message: "MMP文件初始化完成，文件ID: MMP-2024-C-0042" },
-  { type: "ai", operator: "AI-建模手", message: "开始分析2024 MCM-C题目要求..." },
-  { type: "info", operator: "系统", message: "第1章 文件头部信息 已自动生成" },
-  { type: "ai", operator: "AI-建模手", message: "题目关键词提取完成: 渔业, 气候变化, SEIR模型" },
-  { type: "complete", operator: "AI-建模手", message: "第2章 题目信息 已更新 - AI解析结果已写入" },
-  { type: "info", operator: "张三", message: "创建了新的思路笔记: SEIR-CA混合建模方案" },
-  { type: "ai", operator: "AI-建模手", message: "正在检索知识库中的相关模型..." },
-  { type: "complete", operator: "AI-建模手", message: "找到3篇高相关度参考文献" },
-  { type: "info", operator: "系统", message: "第3章 思路研讨记录 已更新 - 新增1条思路" },
-  { type: "warning", operator: "AI-编程手", message: "检测到代码中存在潜在的性能问题" },
-  { type: "info", operator: "李四", message: "提交了 seir_model.py v2.3" },
-  { type: "complete", operator: "AI-编程手", message: "代码审查完成 - 发现2处优化建议" },
-  { type: "info", operator: "系统", message: "第4章 代码记录 已更新 - 版本v2.3已归档" },
-  { type: "ai", operator: "AI-编程手", message: "正在运行模型验证..." },
-  { type: "complete", operator: "AI-编程手", message: "模型验证通过 - R²=0.947, RMSE=0.023" },
-  { type: "info", operator: "王五", message: "完成了论文第5章初稿" },
-  { type: "ai", operator: "AI-论文手", message: "正在检查论文格式规范..." },
-  { type: "warning", operator: "AI-论文手", message: "参考文献格式不统一，建议统一为GB/T 7714" },
-  { type: "complete", operator: "AI-论文手", message: "格式检查完成 - 已自动修正3处格式问题" },
-  { type: "info", operator: "系统", message: "第6章 论文与图表记录 已更新" },
-  { type: "ai", operator: "AI-评价系统", message: "正在生成本轮评价报告..." },
-  { type: "complete", operator: "AI-评价系统", message: "团队协作指数: 87/100 (较上轮+5)" },
-  { type: "info", operator: "系统", message: "第7章 AI实时评价记录 已更新" },
-  { type: "important", operator: "系统", message: "检测到模型参数漂移，建议重新校准" },
-  { type: "ai", operator: "AI-建模手", message: "正在执行参数重新校准..." },
-  { type: "complete", operator: "AI-建模手", message: "参数校准完成 - 拟合度提升至R²=0.953" },
-  { type: "info", operator: "张三", message: "确认了最终建模方案" },
-  { type: "complete", operator: "系统", message: "MMP文件完整性校验通过" },
-  { type: "ai", operator: "AI-系统", message: "知识库自动更新 - 新增2条模型经验" },
-  { type: "info", operator: "系统", message: "区块链存证已提交 - 交易哈希: 0x7a3f...b2c1" },
-  { type: "complete", operator: "系统", message: "第8章 赛后补充记录 已更新" },
-  { type: "important", operator: "系统", message: "MMP文件已归档 - 团队: 数模之星队" },
-];
-
-const typeStyles: Record<LogType, string> = {
-  info: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  complete: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  warning: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  ai: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  important: "bg-red-500/10 text-red-400 border-red-500/20",
-};
-
-const typeIconStyles: Record<LogType, string> = {
-  info: "text-blue-400",
-  complete: "text-emerald-400",
-  warning: "text-amber-400",
-  ai: "text-purple-400",
-  important: "text-red-400",
-};
-
-function TypeIcon({ type }: { type: LogType }) {
-  const cls = typeIconStyles[type];
-  switch (type) {
-    case "info":
-      return <Info className={cn("w-4 h-4", cls)} />;
-    case "complete":
-      return <CheckCircle2 className={cn("w-4 h-4", cls)} />;
-    case "warning":
-      return <AlertTriangle className={cn("w-4 h-4", cls)} />;
-    case "ai":
-      return <Bot className={cn("w-4 h-4", cls)} />;
-    case "important":
-      return <AlertCircle className={cn("w-4 h-4", cls)} />;
-  }
-}
-
-function getNowTime(): string {
-  const d = new Date();
-  return [d.getHours(), d.getMinutes(), d.getSeconds()]
-    .map((n) => String(n).padStart(2, "0"))
-    .join(":");
-}
-
-export default function MmpPage() {
-  const [expandedChapter, setExpandedChapter] = useState<number | null>(null);
-  const [showFullFile, setShowFullFile] = useState(false);
+/* ------------------------------------------------------------------ */
+/*  页面组件                                                           */
+/* ------------------------------------------------------------------ */
+export default function MMPPage() {
   const { showToast } = useToast();
 
-  // ---- 实时操作日志状态 ----
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [isPaused, setIsPaused] = useState(false);
-  const [logIndex, setLogIndex] = useState(0);
-  const logEndRef = useRef<HTMLDivElement>(null);
-  const logIdRef = useRef(0);
+  const [log, setLog] = useState<MMPLogEntry[]>([]);
+  const [roleFilter, setRoleFilter] =
+    useState<"all" | MMPRole>("all");
+  const [expandedChapter, setExpandedChapter] = useState<number | null>(1);
+  const [detailEntry, setDetailEntry] = useState<MMPLogEntry | null>(null);
+  const [chainDialogOpen, setChainDialogOpen] = useState(false);
 
-  // 统计
-  const totalOps = logs.length;
-  const aiOps = logs.filter((l) => l.type === "ai").length;
-  const fileUpdates = logs.filter(
-    (l) => l.type === "complete" && l.operator === "系统"
-  ).length;
-
-  // 自动生成日志
+  /* ---------- 初始化：种子 + 读取 ---------- */
   useEffect(() => {
-    if (isPaused) return;
+    seedIfEmpty();
+    setLog(readMMPLog());
+  }, []);
 
-    const interval = setInterval(() => {
-      const entry = logPool[logIndex % logPool.length];
-      setLogs((prev) => [
-        ...prev,
-        { ...entry, id: ++logIdRef.current, time: getNowTime() },
-      ]);
-      setLogIndex((prev) => prev + 1);
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [isPaused, logIndex]);
-
-  // 自动滚动到底部
-  useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [logs]);
-
-  const handleClearLogs = useCallback(() => {
-    setLogs([]);
-    setLogIndex(0);
-    logIdRef.current = 0;
-    showToast("日志已清空", "info");
+  const refresh = useCallback(() => {
+    setLog(readMMPLog());
+    showToast("操作日志已刷新", "info");
   }, [showToast]);
 
-  const handleExportLogs = useCallback(() => {
-    showToast("日志已导出为 mmp-log-2024.txt", "success");
-  }, [showToast]);
+  const filteredLog = useMemo(() => {
+    const src = [...log].sort((a, b) => b.timestamp - a.timestamp);
+    if (roleFilter === "all") return src;
+    return src.filter((e) => e.role === roleFilter);
+  }, [log, roleFilter]);
+
+  /* ---------- 区块链哈希（真算） ---------- */
+  const fileHash = useMemo(() => calcMMPFileHash(), [log]);
+  const latestEntry = log[log.length - 1];
+  const latestBlockNumber = latestEntry?.blockNumber ?? 18234567;
+  const latestTxHash = latestEntry?.txHash ?? "0x" + "0".repeat(64);
+
+  /* ---------- 操作 ---------- */
+  const handleCopy = (text: string, label = "已复制") => {
+    navigator.clipboard.writeText(text);
+    showToast(label, "success");
+  };
+
+  const handleExport = () => {
+    exportMMPFile();
+    showToast("MMP 文件已导出", "success");
+  };
+
+  const handleClear = () => {
+    if (confirm("确定要清空所有操作日志吗？此操作不可撤销。")) {
+      clearMMPLog();
+      setLog([]);
+      showToast("操作日志已清空", "warning");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-blue-50/30">
-      {/* 装饰背景 */}
+    <div className="relative min-h-screen gradient-bg-mesh">
+      {/* 背景装饰 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 -left-20 w-60 h-60 bg-gradient-to-br from-blue-400/15 to-purple-400/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-1/4 w-72 h-72 bg-gradient-to-br from-teal-400/10 to-green-400/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl animate-float-slow" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-purple-500/10 blur-3xl animate-float" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-200/50 mb-4">
-            <FileCode className="w-4 h-4 text-emerald-500" />
-            <span className="text-sm font-medium text-emerald-600">全流程记录</span>
-          </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent mb-3">
-            .mmp 文件系统
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            MathModel Project - 记录数模竞赛全流程操作与交互
-          </p>
-        </div>
-
-        {/* 文件说明卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          {[
-            {
-              icon: FileCode,
-              title: "文本+二进制混合格式",
-              desc: "支持结构化文本与二进制数据混合存储",
-              gradient: "from-blue-500 to-cyan-400",
-            },
-            {
-              icon: Layers,
-              title: "记录全流程操作",
-              desc: "从选题到提交，每一步操作均有记录",
-              gradient: "from-purple-500 to-violet-400",
-            },
-            {
-              icon: Eye,
-              title: "可追溯、可审计",
-              desc: "所有记录带时间戳，支持完整审计追踪",
-              gradient: "from-amber-500 to-orange-400",
-            },
-            {
-              icon: Shield,
-              title: "解决AI黑盒问题",
-              desc: "AI操作全程透明，消除使用疑虑",
-              gradient: "from-green-500 to-emerald-400",
-            },
-          ].map((item, index) => (
-            <Card
-              key={index}
-              className="border-0 bg-white/60 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-            >
-              <CardContent className="p-5 text-center">
-                <div
-                  className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg mx-auto mb-3`}
-                >
-                  <item.icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-sm mb-1">{item.title}</h3>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* MMP文件结构展示 - 8 chapters */}
-        <div className="mb-10">
-          <h2 className="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2">
-            <Layers className="w-5 h-5 text-emerald-500" />
-            文件结构 - 8大核心章节
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mmpChapters.map((chapter) => {
-              const isExpanded = expandedChapter === chapter.id;
-              return (
-                <Card
-                  key={chapter.id}
-                  className="border-0 bg-white/60 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-                  onClick={() => setExpandedChapter(isExpanded ? null : chapter.id)}
-                  tabIndex={0}
-                  role="button"
-                  aria-expanded={isExpanded}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setExpandedChapter(isExpanded ? null : chapter.id);
-                    }
-                  }}
-                >
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`w-10 h-10 rounded-xl bg-gradient-to-br ${chapter.gradient} flex items-center justify-center shadow-md flex-shrink-0`}
-                      >
-                        <chapter.icon className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs bg-slate-100">
-                              第{chapter.id}章
-                            </Badge>
-                            <h3 className="font-semibold text-sm">{chapter.title}</h3>
-                          </div>
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">{chapter.description}</p>
-                        {isExpanded && (
-                          <div className="mt-3 space-y-2 bg-slate-50/80 rounded-lg p-3 border border-slate-100">
-                            {chapter.fields.map((field, index) => (
-                              <div key={index} className="flex items-start gap-2">
-                                <span className="text-xs font-semibold text-emerald-600 min-w-[80px]">
-                                  {field.label}:
-                                </span>
-                                <span className="text-xs text-slate-600">{field.value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 示例MMP文件 */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Terminal className="w-5 h-5 text-cyan-500" />
-              示例 .mmp 文件预览
-            </h2>
-            <Badge className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-white border-0">
-              2024 MCM Problem C
-            </Badge>
-            <Button size="sm" className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white" onClick={() => showToast("PDF导出成功！文件已保存", "success")}>
-              <Download className="w-4 h-4 mr-1.5" />
-              导出PDF
-            </Button>
-          </div>
-          <Card className="border-0 bg-white/60 backdrop-blur-xl shadow-lg overflow-hidden">
-            <CardContent className="p-0">
-              <div className="bg-slate-900 rounded-t-xl p-4 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-400" />
-                  <div className="w-3 h-3 rounded-full bg-amber-400" />
-                  <div className="w-3 h-3 rounded-full bg-green-400" />
-                </div>
-                <span className="text-slate-400 text-xs ml-2 font-mono">
-                  team-2024mc-0142.mmp
-                </span>
-                <Badge variant="outline" className="ml-auto text-slate-400 border-slate-700 text-xs">
-                  UTF-8 | 48.2 KB
-                </Badge>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* 顶部标题 */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+                <FileCode className="w-6 h-6 text-white" />
               </div>
-              <ScrollArea className="h-[400px]">
-                <pre className="p-5 text-xs font-mono leading-relaxed text-slate-700 whitespace-pre-wrap bg-slate-50/50">
-                  {sampleMmpContent}
-                </pre>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 实时操作日志 */}
-        <div className="mb-10">
-          {/* 标题区 */}
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-emerald-500" />
-              实时操作日志
-            </h2>
-            {/* 在线状态指示灯 */}
-            <span className="relative flex h-3 w-3">
-              <span className="animate-pulse-online absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
-            </span>
+              <h1 className="text-3xl font-bold text-foreground">
+                .mmp 文件系统
+              </h1>
+              <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0">
+                实时自动记录
+              </Badge>
+            </div>
+            <p className="text-muted-foreground">
+              全程操作自动上链，每一步都可追溯、可审计
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            系统自动记录所有操作，确保全流程可追溯
-          </p>
-
-          {/* 统计栏 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <div className="rounded-xl bg-white/60 backdrop-blur-xl border border-slate-200/60 px-4 py-3 shadow-sm">
-              <p className="text-xs text-muted-foreground mb-0.5">总操作数</p>
-              <p className="text-lg font-bold text-slate-800">{totalOps} <span className="text-xs font-normal text-muted-foreground">条</span></p>
-            </div>
-            <div className="rounded-xl bg-white/60 backdrop-blur-xl border border-slate-200/60 px-4 py-3 shadow-sm">
-              <p className="text-xs text-muted-foreground mb-0.5">AI操作</p>
-              <p className="text-lg font-bold text-purple-600">{aiOps} <span className="text-xs font-normal text-muted-foreground">条</span></p>
-            </div>
-            <div className="rounded-xl bg-white/60 backdrop-blur-xl border border-slate-200/60 px-4 py-3 shadow-sm">
-              <p className="text-xs text-muted-foreground mb-0.5">文件更新</p>
-              <p className="text-lg font-bold text-emerald-600">{fileUpdates} <span className="text-xs font-normal text-muted-foreground">次</span></p>
-            </div>
-            <div className="rounded-xl bg-white/60 backdrop-blur-xl border border-slate-200/60 px-4 py-3 shadow-sm">
-              <p className="text-xs text-muted-foreground mb-0.5">最新状态</p>
-              <p className="text-lg font-bold text-emerald-600 flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-pulse-online absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-                </span>
-                {isPaused ? "已暂停" : "记录中..."}
-              </p>
-            </div>
-          </div>
-
-          {/* 控制按钮 */}
-          <div className="flex items-center gap-2 mb-3">
-            <Button
-              size="sm"
-              variant={isPaused ? "default" : "outline"}
-              onClick={() => setIsPaused(!isPaused)}
-              className={cn(
-                isPaused
-                  ? "bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white border-0"
-                  : "border-slate-200 text-slate-600 hover:bg-slate-100"
-              )}
-            >
-              {isPaused ? (
-                <>
-                  <Play className="w-3.5 h-3.5 mr-1.5" />
-                  继续
-                </>
-              ) : (
-                <>
-                  <Pause className="w-3.5 h-3.5 mr-1.5" />
-                  暂停
-                </>
-              )}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" onClick={refresh}>
+              <RefreshCw className="w-4 h-4 mr-1.5" />
+              刷新
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-slate-200 text-slate-600 hover:bg-slate-100"
-              onClick={handleClearLogs}
-            >
-              <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+            <Button variant="outline" onClick={handleClear}>
+              <Trash2 className="w-4 h-4 mr-1.5" />
               清空日志
             </Button>
             <Button
-              size="sm"
-              variant="outline"
-              className="border-slate-200 text-slate-600 hover:bg-slate-100"
-              onClick={handleExportLogs}
+              onClick={handleExport}
+              className="gradient-bg text-white shadow-lg shadow-indigo-500/25"
             >
-              <FileDown className="w-3.5 h-3.5 mr-1.5" />
-              导出日志
+              <Download className="w-4 h-4 mr-1.5" />
+              导出 .mmp 文件
             </Button>
           </div>
+        </div>
 
-          {/* 日志容器 */}
-          <Card className="border-0 bg-slate-900 shadow-lg overflow-hidden">
-            <CardContent className="p-0">
-              {/* 终端顶栏 */}
-              <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-800/80 border-b border-slate-700/50">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-400/80" />
-                </div>
-                <span className="text-slate-500 text-xs ml-2 font-mono">mmp-operation-log</span>
-                <Badge variant="outline" className="ml-auto text-slate-500 border-slate-700 text-[10px] px-1.5 py-0">
-                  LIVE
-                </Badge>
-              </div>
-
-              {/* 日志列表 */}
-              <div className="h-[350px] overflow-y-auto scroll-smooth" style={{ scrollbarWidth: "thin", scrollbarColor: "#334155 transparent" }}>
-                {logs.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-600">
-                    <Terminal className="w-8 h-8 mb-2 opacity-40" />
-                    <p className="text-sm">等待操作日志...</p>
-                    <p className="text-xs mt-1 text-slate-700">系统将自动记录所有操作</p>
+        {/* ============ 实时操作流 ============ */}
+        <Card className="glass-card-strong border-indigo-200/60 dark:border-indigo-700/60">
+          <CardHeader>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="relative">
+                    <Activity className="w-5 h-5 text-indigo-600" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full" />
                   </div>
-                ) : (
-                  <div className="p-2 space-y-1">
-                    {logs.map((log) => (
+                  实时操作流
+                  <Badge variant="outline" className="text-xs font-mono">
+                    {log.length} 条记录
+                  </Badge>
+                </CardTitle>
+                <CardDescription>
+                  所有成员操作自动记录，按时间倒序
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {ROLE_FILTERS.map((f) => (
+                  <button
+                    key={f.value}
+                    onClick={() => setRoleFilter(f.value)}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-medium transition-all",
+                      roleFilter === f.value
+                        ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    )}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {filteredLog.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Boxes className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p className="text-sm">
+                  开始使用系统后这里会自动记录每一步操作
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[480px] overflow-y-auto pr-2">
+                <AnimatePresence initial={false}>
+                  {filteredLog.map((entry) => (
+                    <motion.div
+                      key={entry.id}
+                      layout
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.25 }}
+                      onClick={() => setDetailEntry(entry)}
+                      className="group flex items-center gap-3 p-3 rounded-xl bg-white/60 dark:bg-gray-800/40 border border-gray-200/60 dark:border-gray-700/60 hover:border-indigo-300/80 dark:hover:border-indigo-600/80 hover:shadow-md cursor-pointer transition-all"
+                    >
                       <div
-                        key={log.id}
                         className={cn(
-                          "flex items-start gap-3 px-4 py-2.5 border-l-2 rounded-r-lg transition-all duration-300 animate-log-fade-in",
-                          typeStyles[log.type]
+                          "w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-xs font-semibold shrink-0",
+                          ROLE_COLORS[entry.role]
                         )}
                       >
-                        {/* 时间戳 */}
-                        <span className="text-xs font-mono text-gray-500 shrink-0 w-16 pt-0.5">
-                          {log.time}
-                        </span>
-
-                        {/* 图标 */}
-                        <div className="shrink-0 mt-0.5">
-                          <TypeIcon type={log.type} />
+                        {entry.roleName.slice(0, 2)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <Badge className={cn("text-xs", ROLE_BADGE[entry.role])}>
+                            {entry.roleName}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {entry.actionLabel}
+                          </span>
+                          {entry.file && (
+                            <code className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-300">
+                              {entry.file}
+                            </code>
+                          )}
+                          <span className="text-xs text-muted-foreground ml-auto">
+                            {new Date(entry.timestamp).toLocaleTimeString("zh-CN")}
+                          </span>
                         </div>
-
-                        {/* 内容 */}
-                        <div className="flex-1 min-w-0">
-                          <span className="text-xs font-medium text-gray-400">{log.operator}</span>
-                          <p className="text-sm text-gray-300">{log.message}</p>
+                        <div className="text-sm text-foreground truncate">
+                          {entry.description}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground font-mono">
+                          <span className="flex items-center gap-1">
+                            <Hash className="w-3 h-3" />
+                            {entry.hashShort}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Blocks className="w-3 h-3" />#{entry.blockNumber}
+                          </span>
                         </div>
                       </div>
-                    ))}
-                    <div ref={logEndRef} />
-                  </div>
-                )}
+                      <ChevronDown className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* 操作规范 */}
-        <div>
-          <h2 className="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2">
-            <Info className="w-5 h-5 text-blue-500" />
-            操作规范
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {operationRules.map((rule, index) => (
-              <Card
-                key={index}
-                className="border-0 bg-white/60 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <CardContent className="p-5">
-                  <div className="flex items-start gap-3">
-                    <rule.icon
-                      className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                        rule.type === "success" ? "text-green-500" : "text-amber-500"
-                      }`}
-                    />
-                    <div>
-                      <h3 className="font-semibold text-sm">{rule.text}</h3>
-                      <p className="text-xs text-muted-foreground mt-1">{rule.detail}</p>
+        {/* ============ 区块链存证 ============ */}
+        <Card className="glass-card-strong relative overflow-hidden border-purple-300/60 dark:border-purple-600/60">
+          {/* 发光装饰 */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full blur-3xl" />
+
+          <CardHeader className="relative">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg shadow-purple-500/30">
+                <Shield className="w-5 h-5 text-white" />
+              </div>
+              <CardTitle className="flex items-center gap-2">
+                链上存证
+                <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-md">
+                  <Check className="w-3 h-3 mr-1" />
+                  已验证
+                </Badge>
+              </CardTitle>
+            </div>
+            <CardDescription>
+              文件哈希实时写入区块链，不可篡改
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="relative">
+            <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
+              {/* 左侧：存证信息 */}
+              <div className="space-y-3 font-mono text-sm">
+                <AttestRow
+                  label="File SHA-256"
+                  value={fileHash.hash}
+                  icon={Fingerprint}
+                  onCopy={() => handleCopy(fileHash.hash, "文件哈希已复制")}
+                  monoBreak
+                />
+                <AttestRow
+                  label="Block Number"
+                  value={`#${latestBlockNumber}`}
+                  icon={Blocks}
+                />
+                <AttestRow
+                  label="Transaction Hash"
+                  value={latestTxHash}
+                  icon={Link2}
+                  onCopy={() => handleCopy(latestTxHash, "交易哈希已复制")}
+                  monoBreak
+                />
+                <AttestRow
+                  label="Gas Used"
+                  value={`${latestEntry?.gasUsed ?? 21000} / 50000`}
+                  icon={Zap}
+                />
+                <AttestRow
+                  label="Timestamp"
+                  value={
+                    latestEntry
+                      ? new Date(latestEntry.timestamp).toLocaleString("zh-CN")
+                      : "—"
+                  }
+                  icon={Info}
+                />
+                <div className="pt-2">
+                  <Button
+                    onClick={() => setChainDialogOpen(true)}
+                    className="gradient-bg text-white shadow-lg"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-1.5" />
+                    查看链上详情
+                  </Button>
+                </div>
+              </div>
+
+              {/* 右侧：QR 码 */}
+              <div className="flex flex-col items-center gap-2 p-5 rounded-2xl bg-white dark:bg-gray-900 shadow-inner border border-purple-200/60 dark:border-purple-700/60">
+                <QRCodeSVG
+                  value={`https://etherscan.io/tx/${latestTxHash}`}
+                  size={140}
+                  bgColor="transparent"
+                  fgColor="currentColor"
+                  className="text-foreground"
+                />
+                <span className="text-[11px] text-muted-foreground text-center">
+                  扫码到 Etherscan
+                  <br />
+                  查询完整记录
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ============ 文件章节结构 ============ */}
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Layers className="w-5 h-5 text-indigo-600" />
+              文件结构：8 大章节自动组织
+            </CardTitle>
+            <CardDescription>
+              .mmp 文件遵循固定结构，系统自动填充内容，无需人工维护
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-3">
+              {mmpChapters.map((ch) => {
+                const open = expandedChapter === ch.id;
+                return (
+                  <button
+                    key={ch.id}
+                    onClick={() =>
+                      setExpandedChapter(open ? null : ch.id)
+                    }
+                    className={cn(
+                      "text-left rounded-xl border p-4 transition-all",
+                      open
+                        ? "bg-white dark:bg-gray-800 border-indigo-300 dark:border-indigo-600 shadow-md"
+                        : "bg-white/50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-700"
+                    )}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div
+                        className={cn(
+                          "w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center text-white font-bold text-xs shrink-0",
+                          ch.gradient
+                        )}
+                      >
+                        {ch.id}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-sm">{ch.title}</div>
+                        <div className="text-xs text-muted-foreground line-clamp-1">
+                          {ch.description}
+                        </div>
+                      </div>
+                      {open ? (
+                        <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+                    {open && (
+                      <div className="mt-3 space-y-2 pl-11">
+                        {ch.fields.map((f, idx) => (
+                          <div key={idx} className="text-xs">
+                            <span className="text-muted-foreground">
+                              {f.label}：
+                            </span>
+                            <span className="text-foreground">{f.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ============ 价值说明 ============ */}
+        <Card className="glass-card border-emerald-200/60 dark:border-emerald-700/60">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-emerald-600" />
+              为什么需要 .mmp 文件？
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-4 text-sm">
+            <ValueCard
+              icon={Database}
+              title="全程可追溯"
+              desc="从题目下发到论文提交，每一步都被系统记录，审核无死角。"
+            />
+            <ValueCard
+              icon={Lock}
+              title="防篡改存证"
+              desc="关键节点自动上链，哈希校验保证数据真实性。"
+            />
+            <ValueCard
+              icon={Search}
+              title="赛后沉淀"
+              desc="成为团队能力 Card 和知识库的一手数据源。"
+            />
+          </CardContent>
+        </Card>
       </div>
+
+      {/* ==================== 详情 Dialog：单条日志 ==================== */}
+      <Dialog
+        open={!!detailEntry}
+        onOpenChange={(o) => !o && setDetailEntry(null)}
+      >
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Hash className="w-4 h-4" />
+              操作详情
+            </DialogTitle>
+            <DialogDescription>链上存证完整记录</DialogDescription>
+          </DialogHeader>
+          {detailEntry && (
+            <div className="space-y-3 font-mono text-xs">
+              <KV label="角色" value={`${detailEntry.roleName}（${detailEntry.role}）`} />
+              <KV label="操作" value={detailEntry.actionLabel} />
+              {detailEntry.file && <KV label="文件" value={detailEntry.file} />}
+              <KV label="描述" value={detailEntry.description} />
+              <KV
+                label="时间"
+                value={new Date(detailEntry.timestamp).toLocaleString("zh-CN")}
+              />
+              <KV label="SHA-256" value={detailEntry.hash} break />
+              <KV label="区块号" value={`#${detailEntry.blockNumber}`} />
+              <KV label="交易哈希" value={detailEntry.txHash} break />
+              <KV label="Gas" value={`${detailEntry.gasUsed}`} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ==================== 链上详情 Dialog ==================== */}
+      <Dialog open={chainDialogOpen} onOpenChange={setChainDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-purple-600" />
+              区块链浏览器 · 链上详情
+            </DialogTitle>
+            <DialogDescription>
+              完整的链上交易记录（演示数据，格式贴近 Etherscan）
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 font-mono text-xs bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+            <EtherRow label="Block Number" value={`#${latestBlockNumber}`} />
+            <EtherRow
+              label="Timestamp"
+              value={
+                latestEntry
+                  ? `${new Date(latestEntry.timestamp).toLocaleString("zh-CN")} (${
+                      Math.floor(
+                        (Date.now() - latestEntry.timestamp) / 1000
+                      )
+                    }s ago)`
+                  : "—"
+              }
+            />
+            <EtherRow
+              label="Transaction Hash"
+              value={latestTxHash}
+              copy
+              onCopy={() => handleCopy(latestTxHash)}
+            />
+            <EtherRow
+              label="From"
+              value="0xCmAmSySzhoUKeHanZhangSanLiSi0000aabbccdd"
+              copy
+              onCopy={() =>
+                handleCopy("0xCmAmSySzhoUKeHanZhangSanLiSi0000aabbccdd")
+              }
+            />
+            <EtherRow
+              label="To (Contract)"
+              value="0xCmAmSysAttestation0v01Mmp000000000000dead"
+              copy
+              onCopy={() =>
+                handleCopy("0xCmAmSysAttestation0v01Mmp000000000000dead")
+              }
+            />
+            <EtherRow
+              label="Input Data"
+              value={`writeMmpHash(bytes32 0x${fileHash.hash.slice(0, 32)}...)`}
+            />
+            <EtherRow label="Gas Used" value={`${latestEntry?.gasUsed ?? 0}`} />
+            <EtherRow label="Gas Price" value="21 Gwei" />
+            <EtherRow label="Status" value="✓ Success" />
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2">
+            * 当前为演示网络（CMAMSys Testnet），正式版将对接以太坊主网或联盟链。
+          </p>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  子组件                                                             */
+/* ------------------------------------------------------------------ */
+interface AttestRowProps {
+  label: string;
+  value: string;
+  icon: React.ElementType;
+  onCopy?: () => void;
+  monoBreak?: boolean;
+}
+function AttestRow({
+  label,
+  value,
+  icon: Icon,
+  onCopy,
+  monoBreak,
+}: AttestRowProps) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="flex items-center gap-2 w-40 shrink-0 text-muted-foreground">
+        <Icon className="w-4 h-4" />
+        <span className="text-xs font-sans">{label}</span>
+      </div>
+      <div
+        className={cn(
+          "flex-1 text-foreground",
+          monoBreak && "break-all"
+        )}
+      >
+        {value}
+      </div>
+      {onCopy && (
+        <button
+          onClick={onCopy}
+          className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors"
+        >
+          <Copy className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function KV({
+  label,
+  value,
+  break: shouldBreak,
+}: {
+  label: string;
+  value: string;
+  break?: boolean;
+}) {
+  return (
+    <div className="flex gap-3">
+      <span className="w-24 shrink-0 text-muted-foreground">{label}</span>
+      <span className={cn("flex-1 text-foreground", shouldBreak && "break-all")}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function EtherRow({
+  label,
+  value,
+  copy,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  copy?: boolean;
+  onCopy?: () => void;
+}) {
+  return (
+    <div className="flex items-start gap-3 py-1.5 border-b border-dashed border-gray-200 dark:border-gray-700 last:border-0">
+      <span className="w-36 shrink-0 text-gray-500 dark:text-gray-400">
+        {label}
+      </span>
+      <span className="flex-1 text-gray-900 dark:text-gray-100 break-all">
+        {value}
+      </span>
+      {copy && onCopy && (
+        <button
+          onClick={onCopy}
+          className="text-gray-400 hover:text-indigo-500 p-0.5 transition-colors"
+        >
+          <Copy className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ValueCard({
+  icon: Icon,
+  title,
+  desc,
+}: {
+  icon: React.ElementType;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="p-4 rounded-xl bg-white/60 dark:bg-gray-800/40 border border-gray-200/60 dark:border-gray-700/60">
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="w-4 h-4 text-emerald-600" />
+        <span className="font-semibold text-sm">{title}</span>
+      </div>
+      <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
     </div>
   );
 }

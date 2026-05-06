@@ -375,7 +375,7 @@ export default function WorkspacePage() {
   /* ---------- 短期记忆状态 ---------- */
   const [messages, setMessages] = useState<Array<{ sender: string; content: string; isAI: boolean }>>([]);
   const [chatIndex, setChatIndex] = useState(0);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // 初始加载前3条
@@ -396,7 +396,12 @@ export default function WorkspacePage() {
 
   // 自动滚动到底部
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = chatScrollRef.current;
+    if (!container) return;
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages]);
 
   /* ---------- 长期记忆状态 ---------- */
@@ -595,7 +600,7 @@ export default function WorkspacePage() {
                 <CardContent className="flex-1 flex flex-col pt-0">
                   {/* 聊天窗口 */}
                   <div className="flex-1 bg-slate-50/80 rounded-xl border border-slate-100 overflow-hidden flex flex-col" style={{ height: "300px" }}>
-                    <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                    <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
                       {messages.map((msg, index) => (
                         <div
                           key={index}
@@ -620,7 +625,6 @@ export default function WorkspacePage() {
                           </div>
                         </div>
                       ))}
-                      <div ref={chatEndRef} />
                     </div>
                   </div>
                 </CardContent>

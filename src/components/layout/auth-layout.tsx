@@ -35,9 +35,9 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
     return <LoadingScreen />;
   }
 
-  // 已登录且在登录页 -> 重定向到首页
+  // 已登录且在登录页 -> 重定向到个人主页
   if (user && pathname === "/login") {
-    router.push("/");
+    router.push("/dashboard");
     return <LoadingScreen />;
   }
 
