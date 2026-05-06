@@ -1,7 +1,13 @@
 "use client"
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react"
-import TiptapEditorWrapper, { type TiptapEditorHandle } from "./tiptap-editor-wrapper"
+import dynamic from "next/dynamic"
+import type { TiptapEditorHandle } from "./tiptap-editor-wrapper"
+
+const TiptapEditorWrapper = dynamic(
+  () => import("./tiptap-editor-wrapper"),
+  { ssr: false }
+)
 import {
   PenTool, ArrowRight, CheckCircle2, Circle, Edit3,
   BookOpen, Sparkles, Bot, Brain, ChevronRight,
