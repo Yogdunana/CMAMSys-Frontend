@@ -130,10 +130,14 @@ export default function DashboardPage() {
     showToast(`已加入「${team.name}」`, "success");
   };
 
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    showToast(`邀请码 ${code} 已复制`, "success");
+  const handleCopyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(code);
+      showToast(`邀请码 ${code} 已复制`, "success");
+    } catch {
+      showToast("复制失败，请手动复制", "warning");
+    }
     setTimeout(() => setCopiedCode(null), 2000);
   };
 

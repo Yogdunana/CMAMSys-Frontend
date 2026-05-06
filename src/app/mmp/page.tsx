@@ -194,6 +194,7 @@ export default function MMPPage() {
   const [expandedChapter, setExpandedChapter] = useState<number | null>(1);
   const [detailEntry, setDetailEntry] = useState<MMPLogEntry | null>(null);
   const [chainDialogOpen, setChainDialogOpen] = useState(false);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   /* ---------- 初始化：种子 + 读取 ---------- */
   useEffect(() => {
@@ -219,9 +220,13 @@ export default function MMPPage() {
   const latestTxHash = latestEntry?.txHash ?? "0x" + "0".repeat(64);
 
   /* ---------- 操作 ---------- */
-  const handleCopy = (text: string, label = "已复制") => {
-    navigator.clipboard.writeText(text);
-    showToast(label, "success");
+  const handleCopy = async (text: string, label = "已复制") => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(label, "success");
+    } catch {
+      showToast("复制失败，请手动复制", "warning");
+    }
   };
 
   const handleExport = () => {
@@ -230,11 +235,14 @@ export default function MMPPage() {
   };
 
   const handleClear = () => {
-    if (confirm("确定要清空所有操作日志吗？此操作不可撤销。")) {
-      clearMMPLog();
-      setLog([]);
-      showToast("操作日志已清空", "warning");
-    }
+    setClearDialogOpen(true);
+  };
+
+  const confirmClear = () => {
+    clearMMPLog();
+    setLog([]);
+    setClearDialogOpen(false);
+    showToast("操作日志已清空", "warning");
   };
 
   return (
@@ -605,6 +613,29 @@ export default function MMPPage() {
               <KV label="Gas" value={`${detailEntry.gasUsed}`} />
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ==================== 清空日志确认 Dialog ==================== */}
+      <Dialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-rose-500" />
+              确认清空日志
+            </DialogTitle>
+            <DialogDescription>
+              确定要清空所有操作日志吗？此操作不可撤销。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setClearDialogOpen(false)}>
+              取消
+            </Button>
+            <Button variant="destructive" onClick={confirmClear}>
+              确认清空
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
