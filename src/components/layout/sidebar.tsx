@@ -14,30 +14,44 @@ import {
   Award,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Menu,
   X,
   Brain,
   Code,
   PenTool,
+  LayoutDashboard,
+  LogOut,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
 
 interface NavItem {
   label: string;
   href: string;
   icon: React.ElementType;
   emoji: string;
+  children?: NavItem[];
 }
 
 const navItems: NavItem[] = [
+  { label: "个人主页", href: "/dashboard", icon: LayoutDashboard, emoji: "\u{1F464}" },
   { label: "系统概览", href: "/", icon: Home, emoji: "\u{1F3E0}" },
   { label: "团队组建", href: "/team", icon: Users, emoji: "\u{1F465}" },
   { label: "新手引导", href: "/guide", icon: Workflow, emoji: "\u{1F504}" },
-  { label: "建模手工作台", href: "/modeler", icon: Brain, emoji: "\u{1F9E0}" },
-  { label: "编程手工作台", href: "/programmer", icon: Code, emoji: "\u{1F4BB}" },
-  { label: "论文手工作台", href: "/writer", icon: PenTool, emoji: "\u{270F}\u{FE0F}" },
+  {
+    label: "协作工作流",
+    href: "/workflow",
+    icon: Workflow,
+    emoji: "\u{1F91D}",
+    children: [
+      { label: "建模手工作台", href: "/modeler", icon: Brain, emoji: "\u{1F9E0}" },
+      { label: "编程手工作台", href: "/programmer", icon: Code, emoji: "\u{1F4BB}" },
+      { label: "论文手工作台", href: "/writer", icon: PenTool, emoji: "\u{270F}\u{FE0F}" },
+    ],
+  },
   { label: "知识库", href: "/knowledge", icon: BookOpen, emoji: "\u{1F4DA}" },
   { label: "工作空间", href: "/workspace", icon: FolderOpen, emoji: "\u{1F4BC}" },
   { label: "MMP文件", href: "/mmp", icon: FileText, emoji: "\u{1F4C4}" },
@@ -79,6 +93,106 @@ function NavItemComponent({ item, isActive, isCollapsed }: { item: NavItem; isAc
   );
 }
 
+function NavGroup({
+  item,
+  pathname,
+  isCollapsed,
+}: {
+  item: NavItem;
+  pathname: string;
+  isCollapsed: boolean;
+}) {
+  const Icon = item.icon;
+  const childActive = item.children?.some((c) => pathname === c.href) ?? false;
+  const selfActive = pathname === item.href;
+  const anyActive = childActive || selfActive;
+  const [open, setOpen] = useState(anyActive);
+
+  // 当进入子路由时自动展开
+  React.useEffect(() => {
+    if (anyActive) setOpen(true);
+  }, [anyActive]);
+
+  if (isCollapsed) {
+    // 折叠态：把父项做为 hub 链接显示
+    return (
+      <NavItemComponent
+        item={item}
+        isActive={anyActive}
+        isCollapsed
+      />
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 w-full text-left",
+          anyActive
+            ? "bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-cyan-500/10 text-indigo-600 shadow-sm"
+            : "text-muted-foreground hover:bg-gradient-to-r hover:from-indigo-500/5 hover:via-purple-500/5 hover:to-cyan-500/5 hover:text-foreground"
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center justify-center rounded-lg size-8 transition-all",
+            anyActive
+              ? "bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25"
+              : "bg-muted/60 text-muted-foreground group-hover:bg-gradient-to-br group-hover:from-indigo-500/10 group-hover:to-purple-500/10 group-hover:text-indigo-500"
+          )}
+        >
+          <Icon className="size-4" />
+        </div>
+        <span className="truncate flex-1">{item.label}</span>
+        <ChevronDown
+          className={cn(
+            "size-4 text-muted-foreground transition-transform duration-200",
+            open && "rotate-180"
+          )}
+        />
+      </button>
+      {open && (
+        <div className="mt-1 ml-4 pl-3 border-l border-border/60 space-y-1">
+          <Link
+            href={item.href}
+            className={cn(
+              "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors",
+              selfActive
+                ? "text-indigo-600 bg-indigo-500/10 font-medium"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            )}
+          >
+            <div className="size-1.5 rounded-full bg-current opacity-50" />
+            工作流总览
+          </Link>
+          {item.children!.map((child) => {
+            const ChildIcon = child.icon;
+            const active = pathname === child.href;
+            return (
+              <Link
+                key={child.href}
+                href={child.href}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors",
+                  active
+                    ? "text-indigo-600 bg-indigo-500/10 font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                <ChildIcon className="size-3.5" />
+                <span className="truncate">{child.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SidebarContent({
   isCollapsed,
   onToggle,
@@ -89,6 +203,11 @@ function SidebarContent({
   onClose?: () => void;
 }) {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  const displayName = user?.displayName || "队员";
+  const initials = displayName.slice(0, 1).toUpperCase();
+  const roleLabel = user?.roleLabel || "团队成员";
 
   return (
     <div className="flex h-full flex-col">
@@ -121,14 +240,26 @@ function SidebarContent({
       {/* 导航区域 */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <div className="space-y-1">
-          {navItems.map((item) => (
-            <NavItemComponent
-              key={item.href}
-              item={item}
-              isActive={pathname === item.href}
-              isCollapsed={isCollapsed}
-            />
-          ))}
+          {navItems.map((item) => {
+            if (item.children && item.children.length > 0) {
+              return (
+                <NavGroup
+                  key={item.href}
+                  item={item}
+                  pathname={pathname}
+                  isCollapsed={isCollapsed}
+                />
+              );
+            }
+            return (
+              <NavItemComponent
+                key={item.href}
+                item={item}
+                isActive={pathname === item.href}
+                isCollapsed={isCollapsed}
+              />
+            );
+          })}
         </div>
       </nav>
 
@@ -162,16 +293,25 @@ function SidebarContent({
         )}>
           <Avatar size={isCollapsed ? "default" : "lg"}>
             <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-xs font-semibold">
-              张
+              {initials}
             </AvatarFallback>
           </Avatar>
           {!isCollapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium truncate">张三</span>
-              <span className="text-[11px] text-muted-foreground truncate">
-                团队队长
-              </span>
-            </div>
+            <>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm font-medium truncate">{displayName}</span>
+                <span className="text-[11px] text-muted-foreground truncate">
+                  {roleLabel}
+                </span>
+              </div>
+              <button
+                onClick={logout}
+                title="退出登录"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+              >
+                <LogOut className="size-4" />
+              </button>
+            </>
           )}
         </div>
       </div>

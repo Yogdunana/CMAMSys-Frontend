@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/toast"
 import { cn } from "@/lib/utils"
+import { logMMP } from "@/lib/mmp-logger"
 
 /* ------------------------------------------------------------------ */
 /*  AI日志数据                                                           */
@@ -30,6 +31,8 @@ const AI_LOG_MESSAGES = [
   { time: "14:23:13", text: "迭代记录已更新", type: "success" as const },
   { time: "14:23:15", text: "等待用户操作...", type: "info" as const },
 ]
+
+type AILogEntry = (typeof AI_LOG_MESSAGES)[number]
 
 const logTypeStyles = {
   info: "text-blue-600 dark:text-blue-400",
@@ -162,8 +165,8 @@ export default function ModelerPage() {
   const [peerScores, setPeerScores] = useState<Record<string, number>>({})
 
   // AI日志 state
-  const [logEntries, setLogEntries] = useState<typeof AI_LOG_MESSAGES>([])
-  const logEndRef = useRef<HTMLDivElement>(null)
+  const [logEntries, setLogEntries] = useState<AILogEntry[]>([])
+  const logScrollRef = useRef<HTMLDivElement>(null)
   const [logStarted, setLogStarted] = useState(false)
 
   useEffect(() => {
@@ -180,7 +183,10 @@ export default function ModelerPage() {
     let index = 0
     const interval = setInterval(() => {
       if (index < AI_LOG_MESSAGES.length) {
-        setLogEntries(prev => [...prev, AI_LOG_MESSAGES[index]])
+        const nextEntry = AI_LOG_MESSAGES[index]
+        if (nextEntry) {
+          setLogEntries(prev => [...prev, nextEntry])
+        }
         index++
       } else {
         clearInterval(interval)
@@ -190,7 +196,12 @@ export default function ModelerPage() {
   }, [logStarted])
 
   useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    const container = logScrollRef.current
+    if (!container) return
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth",
+    })
   }, [logEntries])
 
   const togglePaper = (idx: number) => {
@@ -210,6 +221,7 @@ export default function ModelerPage() {
       return next
     })
     showToast("已采纳建议", "success")
+    logMMP({ role: "modeler", action: "ai_chat", description: "采纳 AI 建模建议" })
   }
 
   const handleIgnoreSuggestion = (id: number) => {
@@ -229,14 +241,17 @@ export default function ModelerPage() {
 
   const handleSubmitThought = () => {
     showToast("思路已提交！", "success")
+    logMMP({ role: "modeler", action: "submit_thought", description: "提交个人思路到团队思路池" })
   }
 
   const handleSubmitPlan = () => {
     showToast("融合方案已提交！", "success")
+    logMMP({ role: "modeler", action: "submit_plan", description: "提交融合后的建模方案" })
   }
 
   const handleSubmitFinal = () => {
     showToast("最终方案已确认！", "success")
+    logMMP({ role: "modeler", action: "submit_final", description: "确认最终建模方案" })
   }
 
   /* ---------------------------------------------------------------- */
@@ -258,7 +273,7 @@ export default function ModelerPage() {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="h-[500px] overflow-y-auto pr-1 space-y-2 font-mono text-xs">
+        <div ref={logScrollRef} className="h-[500px] overflow-y-auto pr-1 space-y-2 font-mono text-xs">
           {logEntries.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <Bot className="w-6 h-6 mx-auto mb-2 opacity-30" />
@@ -279,7 +294,6 @@ export default function ModelerPage() {
               </div>
             </div>
           ))}
-          <div ref={logEndRef} />
         </div>
       </CardContent>
     </Card>

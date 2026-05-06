@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo } from "react"
-import dynamic from "next/dynamic"
+import { useState, useCallback, useEffect, useMemo, useRef } from "react"
+import TiptapEditorWrapper, { type TiptapEditorHandle } from "./tiptap-editor-wrapper"
 import {
   PenTool, ArrowRight, CheckCircle2, Circle, Edit3,
   BookOpen, Sparkles, Bot, Brain, ChevronRight,
@@ -16,24 +16,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/toast"
 import { cn } from "@/lib/utils"
-
-/* ============================================================
-   Tiptap 编辑器 - 动态导入避免 SSR 问题
-   ============================================================ */
-const TiptapEditorWrapper = dynamic(
-  () => import("./tiptap-editor-wrapper"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-full bg-white text-gray-400 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-          加载编辑器...
-        </div>
-      </div>
-    ),
-  }
-)
 
 /* ============================================================
    章节数据
@@ -202,6 +184,19 @@ export default function WriterPage() {
   const [activeChapter, setActiveChapter] = useState(5)
   const [expandedRefs, setExpandedRefs] = useState<Set<number>>(new Set())
   const [wordCount, setWordCount] = useState(0)
+  const editorRef = useRef<TiptapEditorHandle>(null)
+
+  const handleCiteReference = useCallback((ref: { title: string; source: string; summary: string }) => {
+    const html = `<blockquote><p><strong>${ref.title}</strong>（${ref.source}）：${ref.summary}</p></blockquote>`
+    editorRef.current?.insertContent(html)
+    showToast(`已引用《${ref.title}》到论文`, "success")
+  }, [showToast])
+
+  const handleAiPolish = useCallback(() => {
+    const polished = "<p><em>（AI 润色后段落）</em>本文通过 SEIR-CA 混合模型系统地刻画了气候扰动对渔业资源的多尺度影响机制，模型拟合优度 <code>R²=0.953</code>，显著优于单一 SEIR 基线模型。</p>"
+    editorRef.current?.insertContent(polished)
+    showToast("AI 润色完成，已在正文插入优化段落", "success")
+  }, [showToast])
 
   const handleChapterClick = useCallback((chapter: Chapter) => {
     setActiveChapter(chapter.id)
@@ -392,6 +387,8 @@ export default function WriterPage() {
             <div className="flex-1 min-h-0">
               <TiptapEditorWrapper
                 key={activeChapter}
+                ref={editorRef}
+                chapterId={activeChapter}
                 initialContent={chapterHtmlContents[activeChapter] || ""}
                 onWordCountUpdate={handleWordCountUpdate}
               />
@@ -449,7 +446,7 @@ export default function WriterPage() {
                         <Button
                           size="xs"
                           className="mt-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 hover:from-amber-600 hover:to-orange-600"
-                          onClick={() => showToast("已引用到论文中", "success")}
+                          onClick={() => handleCiteReference(ref)}
                         >
                           引用到论文
                         </Button>
@@ -471,7 +468,7 @@ export default function WriterPage() {
                   <Button
                     size="xs"
                     className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 hover:from-amber-600 hover:to-orange-600"
-                    onClick={() => showToast("AI润色完成，优化了8处表达", "success")}
+                    onClick={handleAiPolish}
                   >
                     <Wand2 className="w-3 h-3 mr-1" />
                     AI润色全文

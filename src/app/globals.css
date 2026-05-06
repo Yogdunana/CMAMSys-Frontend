@@ -621,3 +621,65 @@
 .animate-log-fade-in {
   animation: log-fade-in 0.3s ease-out;
 }
+
+/* ========================================
+   新手引导预览交互动画
+   ======================================== */
+
+/* Step1 三层架构 token 沿连线流动 */
+@keyframes flow-token {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(var(--flow-distance, 100px));
+    opacity: 0;
+  }
+}
+
+.animate-flow-token {
+  animation: flow-token 2.4s linear infinite;
+}
+
+/* Step3 进度条扫描 */
+@keyframes progress-fill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.animate-progress-fill {
+  animation: progress-fill 1s ease-out forwards;
+}
+
+/* Step4 日志卡片由顶部冒出 */
+@keyframes feed-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-feed-pop {
+  animation: feed-pop 0.4s ease-out;
+}
+
+/* 通用：CTA 按钮入场 */
+@keyframes cta-pulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.animate-cta-pulse {
+  animation: cta-pulse 2.5s ease-in-out infinite;
+}

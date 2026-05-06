@@ -3,11 +3,12 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Brain, Code, PenTool, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth, UserRole } from "@/contexts/auth-context";
+import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function LoginPage() {
     displayName: "",
     password: "",
     confirmPassword: "",
+    role: "undecided" as UserRole,
   });
 
   // 表单错误
@@ -91,7 +93,7 @@ export default function LoginPage() {
 
     if (success) {
       showToast("登录成功，欢迎回来！", "success");
-      router.push("/");
+      router.push("/dashboard");
     } else {
       showToast("登录失败，请检查用户名和密码", "warning");
     }
@@ -108,13 +110,14 @@ export default function LoginPage() {
       registerForm.username,
       registerForm.email,
       registerForm.password,
-      registerForm.displayName
+      registerForm.displayName,
+      registerForm.role
     );
     setIsLoading(false);
 
     if (success) {
       showToast("注册成功，欢迎加入 CMAMSys！", "success");
-      router.push("/");
+      router.push("/dashboard");
     } else {
       showToast("注册失败，请稍后重试", "warning");
     }
@@ -328,6 +331,40 @@ export default function LoginPage() {
                     {errors.displayName}
                   </p>
                 )}
+              </div>
+
+              {/* 角色选择 */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  选择你的角色
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { value: "modeler", label: "建模手", icon: Brain, color: "from-blue-500 to-indigo-600" },
+                    { value: "coder", label: "编程手", icon: Code, color: "from-purple-500 to-violet-600" },
+                    { value: "writer", label: "论文手", icon: PenTool, color: "from-orange-500 to-amber-600" },
+                    { value: "undecided", label: "暂未确定", icon: HelpCircle, color: "from-gray-400 to-slate-500" },
+                  ] as { value: UserRole; label: string; icon: React.ElementType; color: string }[]).map((r) => {
+                    const Icon = r.icon;
+                    const active = registerForm.role === r.value;
+                    return (
+                      <button
+                        type="button"
+                        key={r.value}
+                        onClick={() => setRegisterForm({ ...registerForm, role: r.value })}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-2 rounded-xl border transition-all text-sm",
+                          active
+                            ? "border-indigo-400 bg-gradient-to-r text-white shadow-md " + r.color
+                            : "border-border bg-white/60 hover:border-indigo-200 text-foreground"
+                        )}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {r.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div>

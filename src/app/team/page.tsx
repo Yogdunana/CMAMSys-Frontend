@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import {
   Users, Sparkles, MessageSquare, Bot, Shield, Check,
   Copy, Send, ChevronLeft, ChevronRight, ArrowRight,
@@ -85,7 +85,6 @@ export default function TeamPage() {
 
   // Step 3 state
   const [chatInput, setChatInput] = useState("")
-  const chatEndRef = useRef<HTMLDivElement>(null)
 
   // Step 4 state
   const [analyzing, setAnalyzing] = useState(false)
@@ -93,10 +92,6 @@ export default function TeamPage() {
 
   // Step 5 state
   const [confirmedRoles, setConfirmedRoles] = useState<Record<string, boolean>>({})
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [])
 
   const goToStep = (step: number) => {
     if (step === currentStep || animating) return
@@ -396,7 +391,6 @@ export default function TeamPage() {
               </div>
             </div>
           ))}
-          <div ref={chatEndRef} />
         </div>
 
         {/* 输入框 */}
