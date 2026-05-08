@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -27,6 +27,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
+import {
+  getCurrentTeam,
+  getTeamMemberByName,
+  TEAM_ROLE_LABELS,
+} from "@/lib/teams-storage";
 
 interface NavItem {
   label: string;
@@ -204,10 +209,21 @@ function SidebarContent({
 }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const [teamVersion, setTeamVersion] = useState(0);
 
   const displayName = user?.displayName || "队员";
   const initials = displayName.slice(0, 1).toUpperCase();
-  const roleLabel = user?.roleLabel || "团队成员";
+  const roleLabel = useMemo(() => {
+    const currentTeam = getCurrentTeam();
+    const currentMember = getTeamMemberByName(currentTeam, displayName);
+    return currentMember ? TEAM_ROLE_LABELS[currentMember.role] : "暂未确定";
+  }, [displayName, pathname, teamVersion]);
+
+  useEffect(() => {
+    const handleTeamChange = () => setTeamVersion((version) => version + 1);
+    window.addEventListener("cmam-current-team-change", handleTeamChange);
+    return () => window.removeEventListener("cmam-current-team-change", handleTeamChange);
+  }, []);
 
   return (
     <div className="flex h-full flex-col">

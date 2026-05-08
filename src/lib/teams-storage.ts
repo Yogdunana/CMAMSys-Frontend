@@ -5,6 +5,14 @@ import { logMMP } from "./mmp-logger";
 
 export type TeamRole = "modeler" | "coder" | "writer" | "leader" | "member";
 
+export const TEAM_ROLE_LABELS: Record<TeamRole, string> = {
+  modeler: "建模手",
+  coder: "编程手",
+  writer: "论文手",
+  leader: "队长",
+  member: "暂未分配",
+};
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -58,7 +66,13 @@ export function readTeams(): Team[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const list = JSON.parse(raw);
-    return Array.isArray(list) ? list : [];
+    if (!Array.isArray(list)) return [];
+    return list.map((team: Team) => ({
+      ...team,
+      members: Array.isArray(team.members)
+        ? team.members.filter((member) => member.name !== "张三（建模手）")
+        : [],
+    }));
   } catch {
     return [];
   }
@@ -150,6 +164,27 @@ export function getCurrentTeam(): Team | null {
   return readTeams().find((t) => t.id === id) ?? null;
 }
 
+export function getTeamById(id: string): Team | null {
+  return readTeams().find((t) => t.id === id) ?? null;
+}
+
+export function getTeamMemberByName(team: Team | null, name: string): TeamMember | null {
+  if (!team) return null;
+  return team.members.find((member) => member.name === name) ?? null;
+}
+
+export function upsertCurrentTeam(team: Team): void {
+  const teams = readTeams();
+  const idx = teams.findIndex((t) => t.id === team.id);
+  if (idx === -1) {
+    writeTeams([team, ...teams]);
+  } else {
+    teams[idx] = team;
+    writeTeams(teams);
+  }
+  setCurrentTeamId(team.id);
+}
+
 /* ---------- 演示数据：首次登录填充一个示例团队 ---------- */
 export function seedSampleTeam(leaderName: string): void {
   const existing = readTeams();
@@ -167,7 +202,6 @@ export function seedSampleTeam(leaderName: string): void {
     color: "indigo",
     members: [
       { id: genId(), name: leaderName, role: "leader" },
-      { id: genId(), name: "张三（建模手）", role: "modeler" },
       { id: genId(), name: "李四（编程手）", role: "coder" },
       { id: genId(), name: "王五（论文手）", role: "writer" },
     ],

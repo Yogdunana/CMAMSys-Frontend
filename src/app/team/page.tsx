@@ -1,19 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Users, Sparkles, MessageSquare, Bot, Shield, Check,
   Copy, Send, ChevronLeft, ChevronRight, ArrowRight,
-  UserPlus, Link2, Brain, Code, PenTool, BarChart3,
+  UserPlus, Link2,
   Loader2, PartyPopper
 } from "lucide-react"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/toast"
 import {
   Select,
@@ -22,6 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useAuth, type UserRole } from "@/contexts/auth-context"
+import { genInviteCode, getTeamById, setCurrentTeamId, upsertCurrentTeam, type Team, type TeamRole } from "@/lib/teams-storage"
 import { cn } from "@/lib/utils"
 
 /* ------------------------------------------------------------------ */
@@ -39,40 +41,156 @@ const STEPS = [
 /* ------------------------------------------------------------------ */
 /*  预填数据                                                            */
 /* ------------------------------------------------------------------ */
-const MOCK_MEMBERS = [
-  { name: "李四", role: "编程手", avatar: "李", color: "from-fuchsia-500 to-fuchsia-600", ring: "ring-fuchsia-500" },
-  { name: "王五", role: "论文手", avatar: "王", color: "from-pink-500 to-pink-600", ring: "ring-pink-500" },
-  { name: "赵六", role: "数据分析师", avatar: "赵", color: "from-blue-500 to-blue-600", ring: "ring-blue-500" },
-]
+type TriRole = Exclude<UserRole, "undecided">
 
-const MOCK_CHAT = [
-  { sender: "张三", avatar: "张", color: "from-violet-500 to-violet-600", ring: "ring-violet-500", text: "大家好，我们这次选MCM-C题，关于气候对渔业的影响", isAI: false },
-  { sender: "李四", avatar: "李", color: "from-fuchsia-500 to-fuchsia-600", ring: "ring-fuchsia-500", text: "我可以负责编程实现，Python和MATLAB都行", isAI: false },
-  { sender: "王五", avatar: "王", color: "from-pink-500 to-pink-600", ring: "ring-pink-500", text: "我来写论文，之前有经验", isAI: false },
-  { sender: "赵六", avatar: "赵", color: "from-blue-500 to-blue-600", ring: "ring-blue-500", text: "数据清洗和预处理交给我", isAI: false },
-  { sender: "AI助手", avatar: "AI", color: "from-emerald-500 to-teal-500", ring: "ring-emerald-500", text: "建议团队分工：张三-建模手、李四-编程手、王五-论文手", isAI: true },
-  { sender: "张三", avatar: "张", color: "from-violet-500 to-violet-600", ring: "ring-violet-500", text: "同意AI的建议，大家觉得呢？", isAI: false },
-  { sender: "李四", avatar: "李", color: "from-fuchsia-500 to-fuchsia-600", ring: "ring-fuchsia-500", text: "没问题，我擅长SEIR模型和优化算法", isAI: false },
-  { sender: "王五", avatar: "王", color: "from-pink-500 to-pink-600", ring: "ring-pink-500", text: "好的，我先看看往年的优秀论文", isAI: false },
-  { sender: "赵六", avatar: "赵", color: "from-blue-500 to-blue-600", ring: "ring-blue-500", text: "我去找一些渔业相关的数据集", isAI: false },
-  { sender: "AI助手", avatar: "AI", color: "from-emerald-500 to-teal-500", ring: "ring-emerald-500", text: "已为团队推荐3篇相关参考文献，可在知识库中查看", isAI: true },
-]
+type RoleAssignment = {
+  id: string
+  name: string
+  role: TriRole
+  avatar: string
+  color: string
+  textColor: string
+  avatarColor: string
+  ring: string
+  confidence: number
+}
 
-const AI_RECOMMENDATIONS = [
-  { role: "建模手", name: "张三", confidence: 95, color: "from-violet-500 to-fuchsia-500", textColor: "text-violet-600", avatar: "张", avatarColor: "from-violet-500 to-violet-600", ring: "ring-violet-500" },
-  { role: "编程手", name: "李四", confidence: 92, color: "from-fuchsia-500 to-pink-500", textColor: "text-fuchsia-600", avatar: "李", avatarColor: "from-fuchsia-500 to-fuchsia-600", ring: "ring-fuchsia-500" },
-  { role: "论文手", name: "王五", confidence: 88, color: "from-pink-500 to-rose-500", textColor: "text-pink-600", avatar: "王", avatarColor: "from-pink-500 to-pink-600", ring: "ring-pink-500" },
-  { role: "数据分析师", name: "赵六", confidence: 85, color: "from-blue-500 to-cyan-500", textColor: "text-blue-600", avatar: "赵", avatarColor: "from-blue-500 to-blue-600", ring: "ring-blue-500" },
-]
+type ChatMessage = {
+  id: string
+  sender: string
+  avatar: string
+  color: string
+  ring: string
+  text: string
+  isAI: boolean
+}
+
+const ROLE_VALUES: TriRole[] = ["modeler", "coder", "writer"]
+
+const ROLE_LABELS: Record<TriRole, string> = {
+  modeler: "建模手",
+  coder: "编程手",
+  writer: "论文手",
+}
+
+const ROLE_META: Record<TriRole, Omit<RoleAssignment, "id" | "name" | "role" | "avatar">> = {
+  modeler: {
+    confidence: 95,
+    color: "from-violet-500 to-fuchsia-500",
+    textColor: "text-violet-600",
+    avatarColor: "from-violet-500 to-violet-600",
+    ring: "ring-violet-500",
+  },
+  coder: {
+    confidence: 92,
+    color: "from-fuchsia-500 to-pink-500",
+    textColor: "text-fuchsia-600",
+    avatarColor: "from-fuchsia-500 to-fuchsia-600",
+    ring: "ring-fuchsia-500",
+  },
+  writer: {
+    confidence: 88,
+    color: "from-pink-500 to-rose-500",
+    textColor: "text-pink-600",
+    avatarColor: "from-pink-500 to-pink-600",
+    ring: "ring-pink-500",
+  },
+}
+
+const DEMO_MEMBER_NAMES = ["李四", "王五", "陈七"]
+
+function makeId() {
+  return Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4)
+}
+
+function getAvatar(name: string) {
+  return (name.trim().slice(0, 1) || "我").toUpperCase()
+}
+
+function isTriRole(role: UserRole | undefined): role is TriRole {
+  return role === "modeler" || role === "coder" || role === "writer"
+}
+
+function isTeamTriRole(role: TeamRole | undefined): role is TriRole {
+  return role === "modeler" || role === "coder" || role === "writer"
+}
+
+function toAssignment(id: string, name: string, role: TriRole): RoleAssignment {
+  return {
+    id,
+    name,
+    role,
+    avatar: getAvatar(name),
+    ...ROLE_META[role],
+  }
+}
+
+function buildAssignments(currentName: string, currentRole: UserRole | undefined): RoleAssignment[] {
+  const userRole = isTriRole(currentRole) ? currentRole : "modeler"
+  const remainingRoles = ROLE_VALUES.filter(role => role !== userRole)
+  const demoNames = DEMO_MEMBER_NAMES.filter(name => name !== currentName).slice(0, 2)
+  return [
+    toAssignment("current-user", currentName, userRole),
+    ...demoNames.map((name, idx) => toAssignment(`demo-${idx}`, name, remainingRoles[idx])),
+  ]
+}
+
+function buildAssignmentsFromTeam(team: Team, currentName: string): RoleAssignment[] {
+  const members = team.members.length > 0 ? team.members : [{ id: "current-user", name: currentName, role: "member" as TeamRole }]
+  const usedRoles = new Set<TriRole>()
+  const nextAssignments = members.slice(0, 3).map((member, idx) => {
+    const fallbackRole = ROLE_VALUES.find(role => !usedRoles.has(role)) ?? ROLE_VALUES[idx % ROLE_VALUES.length]
+    const role = isTeamTriRole(member.role) && !usedRoles.has(member.role) ? member.role : fallbackRole
+    usedRoles.add(role)
+    return toAssignment(member.name === currentName ? "current-user" : member.id, member.name, role)
+  })
+  if (!nextAssignments.some(member => member.name === currentName)) {
+    const fallbackRole = ROLE_VALUES.find(role => !usedRoles.has(role)) ?? "modeler"
+    nextAssignments.unshift(toAssignment("current-user", currentName, fallbackRole))
+  }
+  return nextAssignments.slice(0, 3)
+}
+
+function buildInitialChat(assignments: RoleAssignment[]): ChatMessage[] {
+  const teammates = assignments.filter(member => member.id !== "current-user")
+  return [
+    ...teammates.map((member) => ({
+      id: makeId(),
+      sender: member.name,
+      avatar: member.avatar,
+      color: member.avatarColor,
+      ring: member.ring,
+      text: member.role === "coder" ? "我可以负责代码实现，Python 和 MATLAB 都可以配合。" : "我可以负责论文结构和结果表达，先整理往年优秀论文。",
+      isAI: false,
+    })),
+    {
+      id: makeId(),
+      sender: "AI助手",
+      avatar: "AI",
+      color: "from-emerald-500 to-teal-500",
+      ring: "ring-emerald-500",
+      text: `建议团队分工：${assignments.map(member => `${member.name}-${ROLE_LABELS[member.role]}`).join("、")}`,
+      isAI: true,
+    },
+  ]
+}
 
 /* ------------------------------------------------------------------ */
 /*  页面组件                                                            */
 /* ------------------------------------------------------------------ */
 export default function TeamPage() {
   const { showToast } = useToast()
+  const router = useRouter()
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [animating, setAnimating] = useState(false)
   const [direction, setDirection] = useState<"forward" | "backward">("forward")
+  const [editTeamId, setEditTeamId] = useState<string | null>(null)
+  const [isEditingExistingTeam, setIsEditingExistingTeam] = useState(false)
+  const currentUserName = useMemo(
+    () => user?.displayName || user?.username || "我",
+    [user?.displayName, user?.username]
+  )
 
   // Step 1 state
   const [teamName, setTeamName] = useState("")
@@ -80,11 +198,26 @@ export default function TeamPage() {
   const [teamDesc, setTeamDesc] = useState("")
 
   // Step 2 state
-  const [inviteCode] = useState(() => String(Math.floor(100000 + Math.random() * 900000)))
+  const [inviteCode, setInviteCode] = useState(() => genInviteCode())
   const [copied, setCopied] = useState(false)
+  const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
+  const [teamId, setTeamId] = useState(() => makeId())
+  const competitionLabel = useMemo(() => {
+    if (competition === "mcm") return "MCM"
+    if (competition === "icm") return "ICM"
+    if (competition === "cumcm") return "CUMCM"
+    return "MCM"
+  }, [competition])
+  const inviteLink = useMemo(() => {
+    const path = `/team?invite=${inviteCode}`
+    if (typeof window === "undefined") return path
+    return `${window.location.origin}${path}`
+  }, [inviteCode])
 
   // Step 3 state
   const [chatInput, setChatInput] = useState("")
+  const [roleAssignments, setRoleAssignments] = useState<RoleAssignment[]>(() => buildAssignments("我", "undecided"))
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => buildInitialChat(buildAssignments("我", "undecided")))
 
   // Step 4 state
   const [analyzing, setAnalyzing] = useState(false)
@@ -92,6 +225,71 @@ export default function TeamPage() {
 
   // Step 5 state
   const [confirmedRoles, setConfirmedRoles] = useState<Record<string, boolean>>({})
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
+  const allConfirmed = roleAssignments.every(member => confirmedRoles[member.id])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const targetTeamId = params.get("teamId")
+    const mode = params.get("mode")
+    if (targetTeamId && mode === "editRoles") {
+      const team = getTeamById(targetTeamId)
+      if (!team) {
+        showToast("未找到要调整的团队", "warning")
+        router.push("/dashboard")
+        return
+      }
+      const nextAssignments = buildAssignmentsFromTeam(team, currentUserName)
+      setEditTeamId(team.id)
+      setIsEditingExistingTeam(true)
+      setCurrentTeam(team)
+      setTeamId(team.id)
+      setTeamName(team.name)
+      setCompetition(team.competition)
+      setTeamDesc(team.goal)
+      setInviteCode(team.inviteCode)
+      setRoleAssignments(nextAssignments)
+      setChatMessages(buildInitialChat(nextAssignments))
+      setConfirmedRoles({})
+      setEditingMemberId(null)
+      setAnalysisDone(true)
+      setCurrentStep(5)
+      setCurrentTeamId(team.id)
+      return
+    }
+    const nextAssignments = buildAssignments(currentUserName, undefined)
+    setEditTeamId(null)
+    setIsEditingExistingTeam(false)
+    setRoleAssignments(nextAssignments)
+    setChatMessages(buildInitialChat(nextAssignments))
+    setConfirmedRoles({})
+    setEditingMemberId(null)
+    setCurrentTeam(null)
+    setTeamId(makeId())
+  }, [currentUserName, router, showToast])
+
+  const saveTeamSnapshot = (assignments = roleAssignments, complete = allConfirmed) => {
+    const nextTeam: Team = {
+      id: currentTeam?.id ?? editTeamId ?? teamId,
+      name: teamName.trim() || "数模之星队",
+      competition: competitionLabel,
+      goal: teamDesc.trim() || "完成数学建模竞赛协作",
+      inviteCode,
+      createdAt: currentTeam?.createdAt ?? Date.now(),
+      progress: complete ? 100 : Math.max(currentTeam?.progress ?? 0, currentStep >= 5 ? 80 : 20),
+      currentStage: complete ? "团队角色分配已确认" : "团队组建与角色分配中",
+      color: currentTeam?.color ?? "purple",
+      members: assignments.map((member) => ({
+        id: member.id,
+        name: member.name,
+        role: member.role,
+        avatar: member.avatar,
+      })),
+    }
+    upsertCurrentTeam(nextTeam)
+    setCurrentTeam(nextTeam)
+    return nextTeam
+  }
 
   const goToStep = (step: number) => {
     if (step === currentStep || animating) return
@@ -104,6 +302,13 @@ export default function TeamPage() {
   }
 
   const handleNext = () => {
+    if (currentStep === 1) {
+      saveTeamSnapshot()
+    }
+    if (currentStep === 5 && !allConfirmed) {
+      showToast("请先确认所有成员角色", "warning")
+      return
+    }
     if (currentStep < 6) goToStep(currentStep + 1)
   }
 
@@ -121,8 +326,30 @@ export default function TeamPage() {
     })
   }
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      showToast("演示邀请链接已复制", "success")
+    }).catch(() => {
+      showToast("复制失败，请手动复制", "warning")
+    })
+  }
+
   const handleSendChat = () => {
     if (!chatInput.trim()) return
+    const currentMember = roleAssignments.find(member => member.id === "current-user") ?? roleAssignments[0]
+    const meta = currentMember ? ROLE_META[currentMember.role] : ROLE_META.modeler
+    setChatMessages(prev => [
+      ...prev,
+      {
+        id: makeId(),
+        sender: currentUserName,
+        avatar: getAvatar(currentUserName),
+        color: meta.avatarColor,
+        ring: meta.ring,
+        text: chatInput.trim(),
+        isAI: false,
+      },
+    ])
     showToast("消息已发送", "success")
     setChatInput("")
   }
@@ -137,12 +364,42 @@ export default function TeamPage() {
     }, 3000)
   }
 
-  const handleConfirmRole = (role: string) => {
-    setConfirmedRoles(prev => ({ ...prev, [role]: true }))
-    showToast(`已确认 ${role} 角色`, "success")
+  const handleChangeRole = (memberId: string, role: TriRole) => {
+    const currentMember = roleAssignments.find(member => member.id === memberId)
+    if (!currentMember || currentMember.role === role) {
+      setEditingMemberId(null)
+      return
+    }
+    const swappedMember = roleAssignments.find(member => member.id !== memberId && member.role === role)
+    const nextAssignments = roleAssignments.map(member => (
+      member.id === memberId
+        ? toAssignment(member.id, member.name, role)
+        : swappedMember && member.id === swappedMember.id
+          ? toAssignment(member.id, member.name, currentMember.role)
+          : member
+    ))
+    setRoleAssignments(nextAssignments)
+    setConfirmedRoles(prev => {
+      const next = { ...prev }
+      delete next[memberId]
+      if (swappedMember) {
+        delete next[swappedMember.id]
+      }
+      return next
+    })
+    setEditingMemberId(null)
+    saveTeamSnapshot(nextAssignments)
+    showToast(swappedMember ? `已与${swappedMember.name}交换角色` : "角色已调整", "success")
   }
 
-  const allConfirmed = AI_RECOMMENDATIONS.every(r => confirmedRoles[r.role])
+  const handleConfirmRole = (member: RoleAssignment) => {
+    const nextConfirmed = { ...confirmedRoles, [member.id]: true }
+    const complete = roleAssignments.every(item => nextConfirmed[item.id])
+    setConfirmedRoles(nextConfirmed)
+    setEditingMemberId(null)
+    saveTeamSnapshot(roleAssignments, complete)
+    showToast(`已确认 ${member.name} 为${ROLE_LABELS[member.role]}`, "success")
+  }
 
   /* ---------------------------------------------------------------- */
   /*  Stepper 顶部步骤条                                                 */
@@ -264,7 +521,7 @@ export default function TeamPage() {
             </div>
             <div>
               <CardTitle className="text-xl">邀请成员</CardTitle>
-              <CardDescription>通过邀请码或链接邀请队友加入团队</CardDescription>
+              <CardDescription>纯前端演示中保留邀请码与链接复制，真实跨设备邀请需要后端支持</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -292,13 +549,13 @@ export default function TeamPage() {
               <div className="flex items-center gap-2 flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                 <Link2 className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span className="text-sm text-muted-foreground truncate font-mono">
-                  https://cmamsys.app/invite/{inviteCode}
+                  {inviteLink}
                 </span>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => showToast("邀请链接已复制！", "success")}
+                onClick={handleCopyLink}
               >
                 <Copy className="w-3.5 h-3.5" />
               </Button>
@@ -315,26 +572,26 @@ export default function TeamPage() {
               <CardTitle className="text-lg">已邀请成员</CardTitle>
               <CardDescription>已加入团队的成员</CardDescription>
             </div>
-            <Badge variant="secondary">{MOCK_MEMBERS.length} 人</Badge>
+            <Badge variant="secondary">{roleAssignments.length} 人</Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {MOCK_MEMBERS.map((member) => (
+            {roleAssignments.map((member) => (
               <div
-                key={member.name}
+                key={member.id}
                 className="flex items-center justify-between p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl border border-gray-200/60 dark:border-gray-700/60 hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-3">
                   <Avatar className={cn("w-10 h-10 ring-2", member.ring)}>
-                    <AvatarFallback className={cn("bg-gradient-to-br text-white font-bold", member.color)}>
+                    <AvatarFallback className={cn("bg-gradient-to-br text-white font-bold", member.avatarColor)}>
                       {member.avatar}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-medium">{member.name}</div>
                     <Badge variant="secondary" className="text-xs mt-0.5">
-                      {member.role}
+                      {ROLE_LABELS[member.role]}
                     </Badge>
                   </div>
                 </div>
@@ -368,8 +625,8 @@ export default function TeamPage() {
       <CardContent>
         {/* 聊天区域 */}
         <div className="space-y-4 max-h-[480px] overflow-y-auto pr-2 mb-4">
-          {MOCK_CHAT.map((msg, idx) => (
-            <div key={idx} className={cn("flex gap-3", msg.isAI && "flex-row-reverse")}>
+          {chatMessages.map((msg) => (
+            <div key={msg.id} className={cn("flex gap-3", msg.isAI && "flex-row-reverse")}>
               <Avatar className={cn("w-9 h-9 ring-2 shrink-0", msg.ring)}>
                 <AvatarFallback className={cn("bg-gradient-to-br text-white font-bold text-xs", msg.color)}>
                   {msg.avatar}
@@ -476,31 +733,31 @@ export default function TeamPage() {
                 分析完成！基于团队讨论内容，AI推荐以下角色分配方案：
               </p>
             </div>
-            {AI_RECOMMENDATIONS.map((rec) => (
+            {roleAssignments.map((member) => (
               <div
-                key={rec.role}
+                key={member.id}
                 className="flex items-center justify-between p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl border border-gray-200/60 dark:border-gray-700/60 hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-3">
-                  <Avatar className={cn("w-10 h-10 ring-2", rec.ring)}>
-                    <AvatarFallback className={cn("bg-gradient-to-br text-white font-bold", rec.avatarColor)}>
-                      {rec.avatar}
+                  <Avatar className={cn("w-10 h-10 ring-2", member.ring)}>
+                    <AvatarFallback className={cn("bg-gradient-to-br text-white font-bold", member.avatarColor)}>
+                      {member.avatar}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium">{rec.name}</div>
-                    <div className="text-sm text-muted-foreground">{rec.role}</div>
+                    <div className="font-medium">{member.name}</div>
+                    <div className="text-sm text-muted-foreground">{ROLE_LABELS[member.role]}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <div className={cn("text-sm font-semibold", rec.textColor)}>
-                      置信度 {rec.confidence}%
+                    <div className={cn("text-sm font-semibold", member.textColor)}>
+                      置信度 {member.confidence}%
                     </div>
                     <div className="w-28 h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-1">
                       <div
-                        className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-1000", rec.color)}
-                        style={{ width: `${rec.confidence}%` }}
+                        className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-1000", member.color)}
+                        style={{ width: `${member.confidence}%` }}
                       />
                     </div>
                   </div>
@@ -509,7 +766,7 @@ export default function TeamPage() {
                     {[85, 92, 78, 95, 88, 70].map((v, i) => (
                       <div
                         key={i}
-                        className={cn("w-1.5 rounded-full bg-gradient-to-t transition-all duration-700", rec.color)}
+                        className={cn("w-1.5 rounded-full bg-gradient-to-t transition-all duration-700", member.color)}
                         style={{ height: `${v * 0.08}px` }}
                       />
                     ))}
@@ -541,11 +798,12 @@ export default function TeamPage() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {AI_RECOMMENDATIONS.map((rec) => {
-            const isConfirmed = confirmedRoles[rec.role]
+          {roleAssignments.map((member) => {
+            const isConfirmed = confirmedRoles[member.id]
+            const isEditing = editingMemberId === member.id
             return (
               <div
-                key={rec.role}
+                key={member.id}
                 className={cn(
                   "flex items-center justify-between p-5 rounded-xl border-2 transition-all duration-300",
                   isConfirmed
@@ -563,23 +821,50 @@ export default function TeamPage() {
                     {isConfirmed ? (
                       <Check className="w-6 h-6 text-white" />
                     ) : (
-                      <Avatar className={cn("w-10 h-10 ring-2", rec.ring)}>
-                        <AvatarFallback className={cn("bg-gradient-to-br text-white font-bold", rec.avatarColor)}>
-                          {rec.avatar}
+                      <Avatar className={cn("w-10 h-10 ring-2", member.ring)}>
+                        <AvatarFallback className={cn("bg-gradient-to-br text-white font-bold", member.avatarColor)}>
+                          {member.avatar}
                         </AvatarFallback>
                       </Avatar>
                     )}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-lg">{rec.name}</span>
+                      <span className="font-semibold text-lg">{member.name}</span>
                       {isConfirmed && (
                         <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
                           已确认
                         </Badge>
                       )}
+                      {member.id === "current-user" && (
+                        <Badge variant="secondary" className="text-xs">
+                          当前登录用户
+                        </Badge>
+                      )}
                     </div>
-                    <div className="text-sm text-muted-foreground">{rec.role} - 置信度 {rec.confidence}%</div>
+                    {isEditing ? (
+                      <Select
+                        value={member.role}
+                        onValueChange={(value) => {
+                          if (isTriRole(value as UserRole)) {
+                            handleChangeRole(member.id, value as TriRole)
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="mt-2 w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_VALUES.map((role) => (
+                            <SelectItem key={role} value={role}>
+                              {ROLE_LABELS[role]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">{ROLE_LABELS[member.role]} - 置信度 {member.confidence}%</div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -588,7 +873,7 @@ export default function TeamPage() {
                       <Button
                         size="sm"
                         className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                        onClick={() => handleConfirmRole(rec.role)}
+                        onClick={() => handleConfirmRole(member)}
                       >
                         <Check className="w-3.5 h-3.5 mr-1" />
                         确认
@@ -596,7 +881,7 @@ export default function TeamPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => showToast("已进入调整模式", "info")}
+                        onClick={() => setEditingMemberId(member.id)}
                       >
                         调整
                       </Button>
@@ -621,8 +906,12 @@ export default function TeamPage() {
           <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-xl shadow-emerald-500/30">
             <PartyPopper className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">团队组建完成！</h2>
-          <p className="text-muted-foreground mb-8">所有角色已确认，可以开始协作工作了</p>
+          <h2 className="text-2xl font-bold mb-2">
+            {isEditingExistingTeam ? "角色调整完成！" : "团队组建完成！"}
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            {isEditingExistingTeam ? "新的团队角色已保存，可以回到主页查看当前团队角色" : "所有角色已确认，可以开始协作工作了"}
+          </p>
 
           {/* 团队信息摘要 */}
           <div className="max-w-lg mx-auto space-y-3 mb-8">
@@ -633,38 +922,37 @@ export default function TeamPage() {
                 <div className="text-right font-medium">{teamName || "数模之星队"}</div>
                 <div className="text-left text-muted-foreground">竞赛类型</div>
                 <div className="text-right font-medium">
-                  {competition === "mcm" ? "MCM" : competition === "icm" ? "ICM" : competition === "cumcm" ? "CUMCM" : "MCM"}
+                  {competitionLabel}
                 </div>
                 <div className="text-left text-muted-foreground">团队人数</div>
-                <div className="text-right font-medium">4 人</div>
+                <div className="text-right font-medium">{roleAssignments.length} 人</div>
               </div>
             </div>
 
             <div className="p-4 bg-white/60 dark:bg-gray-800/60 rounded-xl border border-gray-200/60 dark:border-gray-700/60">
               <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">角色分配</div>
               <div className="grid grid-cols-2 gap-2">
-                {AI_RECOMMENDATIONS.map((rec) => (
-                  <div key={rec.role} className="flex items-center gap-2 text-sm">
-                    <div className={cn("w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-bold", rec.avatarColor)}>
-                      {rec.avatar}
+                {roleAssignments.map((member) => (
+                  <div key={member.id} className="flex items-center gap-2 text-sm">
+                    <div className={cn("w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-bold", member.avatarColor)}>
+                      {member.avatar}
                     </div>
-                    <span className="text-muted-foreground">{rec.role}</span>
-                    <span className="font-medium">{rec.name}</span>
+                    <span className="text-muted-foreground">{ROLE_LABELS[member.role]}</span>
+                    <span className="font-medium">{member.name}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <a href="/workflow">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 shadow-lg shadow-violet-500/25 gap-2 px-10"
-            >
-              <ArrowRight className="w-4 h-4" />
-              进入协作工作流
-            </Button>
-          </a>
+          <Button
+            size="lg"
+            className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 shadow-lg shadow-violet-500/25 gap-2 px-10"
+            onClick={() => router.push(isEditingExistingTeam ? "/dashboard" : "/workflow")}
+          >
+            <ArrowRight className="w-4 h-4" />
+            {isEditingExistingTeam ? "返回主页" : "进入协作工作流"}
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -675,7 +963,7 @@ export default function TeamPage() {
   /* ---------------------------------------------------------------- */
   const renderNavigation = () => (
     <div className="flex items-center justify-between mt-8">
-      {currentStep > 1 ? (
+      {currentStep > 1 && !isEditingExistingTeam ? (
         <Button variant="outline" onClick={handlePrev} className="gap-2">
           <ChevronLeft className="w-4 h-4" />
           上一步
@@ -687,8 +975,9 @@ export default function TeamPage() {
         <Button
           className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 gap-2"
           onClick={handleNext}
+          disabled={currentStep === 5 && !allConfirmed}
         >
-          下一步
+          {currentStep === 5 && isEditingExistingTeam ? "保存调整" : "下一步"}
           <ChevronRight className="w-4 h-4" />
         </Button>
       ) : null}
@@ -725,9 +1014,11 @@ export default function TeamPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-                团队组建
+                {isEditingExistingTeam ? "调整团队角色" : "团队组建"}
               </h1>
-              <p className="text-sm text-muted-foreground">智能角色分配，AI辅助推荐最佳团队配置</p>
+              <p className="text-sm text-muted-foreground">
+                {isEditingExistingTeam ? "为当前团队重新分配三手角色" : "智能角色分配，AI辅助推荐最佳团队配置"}
+              </p>
             </div>
           </div>
         </div>
