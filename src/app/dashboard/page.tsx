@@ -47,7 +47,10 @@ import {
   readTeams,
   joinTeamByCode,
   setCurrentTeamId,
+  getCurrentTeamId,
+  getTeamMemberByName,
   seedSampleTeam,
+  TEAM_ROLE_LABELS,
   Team,
 } from "@/lib/teams-storage";
 import { readMMPLog } from "@/lib/mmp-logger";
@@ -77,6 +80,7 @@ export default function DashboardPage() {
   const { showToast } = useToast();
 
   const [teams, setTeams] = useState<Team[]>([]);
+  const [currentTeamId, setCurrentTeamIdState] = useState<string | null>(null);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -87,6 +91,7 @@ export default function DashboardPage() {
       seedSampleTeam(user.displayName);
     }
     setTeams(readTeams());
+    setCurrentTeamIdState(getCurrentTeamId());
   }, [user?.displayName]);
 
   /* ---------- 统计 ---------- */
@@ -100,11 +105,43 @@ export default function DashboardPage() {
     };
   }, [teams]);
 
+  const currentUserName = user?.displayName || user?.username || "";
+  const currentTeam = useMemo(() => {
+    if (!teams.length) return null;
+    if (currentTeamId) {
+      return teams.find((team) => team.id === currentTeamId) ?? teams[0];
+    }
+    return teams[0];
+  }, [currentTeamId, teams]);
+  const currentTeamMember = useMemo(
+    () => getTeamMemberByName(currentTeam, currentUserName),
+    [currentTeam, currentUserName]
+  );
+  const currentRoleLabel = currentTeamMember
+    ? TEAM_ROLE_LABELS[currentTeamMember.role]
+    : "暂未确定";
+
   /* ---------- 操作 ---------- */
   const handleEnter = (team: Team) => {
     setCurrentTeamId(team.id);
+    setCurrentTeamIdState(team.id);
+    window.dispatchEvent(new Event("cmam-current-team-change"));
     showToast(`已进入团队「${team.name}」`, "success");
     router.push("/");
+  };
+
+  const handleSelectTeam = (team: Team) => {
+    setCurrentTeamId(team.id);
+    setCurrentTeamIdState(team.id);
+    window.dispatchEvent(new Event("cmam-current-team-change"));
+    showToast(`当前团队已切换为「${team.name}」`, "success");
+  };
+
+  const handleAdjustRoles = (team: Team) => {
+    setCurrentTeamId(team.id);
+    setCurrentTeamIdState(team.id);
+    window.dispatchEvent(new Event("cmam-current-team-change"));
+    router.push(`/team?teamId=${team.id}&mode=editRoles`);
   };
 
   const handleJoin = () => {
@@ -115,16 +152,16 @@ export default function DashboardPage() {
     }
     const team = joinTeamByCode(code, {
       name: user?.displayName ?? "未知成员",
-      role:
-        user?.role === "undecided"
-          ? "member"
-          : (user?.role as "modeler" | "coder" | "writer" | undefined),
+      role: "member",
     });
     if (!team) {
       showToast("邀请码无效或团队不存在", "warning");
       return;
     }
     setTeams(readTeams());
+    setCurrentTeamId(team.id);
+    setCurrentTeamIdState(team.id);
+    window.dispatchEvent(new Event("cmam-current-team-change"));
     setJoinDialogOpen(false);
     setJoinCode("");
     showToast(`已加入「${team.name}」`, "success");
@@ -164,9 +201,13 @@ export default function DashboardPage() {
                     你好，{user?.displayName || "队员"} 👋
                   </h1>
                   <p className="text-sm text-muted-foreground">
+                    当前团队：
+                    <Badge variant="secondary" className="ml-1">
+                      {currentTeam?.name || "暂未选择"}
+                    </Badge>
                     当前角色：
                     <Badge className="ml-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0">
-                      {user?.roleLabel || "团队成员"}
+                      {currentRoleLabel}
                     </Badge>
                   </p>
                 </div>
@@ -193,7 +234,7 @@ export default function DashboardPage() {
                 我加入的团队
               </h2>
               <p className="text-sm text-muted-foreground">
-                点击团队卡片即可进入协作空间
+                点击卡片切换当前团队，使用按钮进入协作空间或调整角色
               </p>
             </div>
             <div className="flex gap-2">
@@ -245,8 +286,11 @@ export default function DashboardPage() {
               {teams.map((team) => (
                 <Card
                   key={team.id}
-                  className="glass-card group cursor-pointer hover:-translate-y-1 transition-all relative overflow-hidden"
-                  onClick={() => handleEnter(team)}
+                  className={cn(
+                    "glass-card group cursor-pointer hover:-translate-y-1 transition-all relative overflow-hidden",
+                    currentTeamId === team.id && "ring-2 ring-indigo-400"
+                  )}
+                  onClick={() => handleSelectTeam(team)}
                 >
                   {/* 顶部彩色条 */}
                   <div
@@ -348,25 +392,31 @@ export default function DashboardPage() {
                       </button>
                     </div>
 
-                    {/* 进入按钮 */}
-                    <Button
-                      variant="outline"
-                      className="w-full group-hover:bg-gradient-to-r group-hover:text-white group-hover:border-transparent transition-all group-hover:shadow-md"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEnter(team);
-                      }}
-                    >
-                      <span
-                        className={cn(
-                          "flex items-center justify-center gap-1.5 w-full",
-                          "group-hover:drop-shadow-sm"
-                        )}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        className="w-full transition-all"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEnter(team);
+                        }}
                       >
-                        进入协作空间
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </Button>
+                        <span className={cn("flex items-center justify-center gap-1.5 w-full") }>
+                          进入协作空间
+                          <ArrowRight className="w-4 h-4 transition-transform" />
+                        </span>
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAdjustRoles(team);
+                        }}
+                      >
+                        调整角色
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

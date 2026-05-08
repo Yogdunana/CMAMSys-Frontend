@@ -26,6 +26,7 @@ interface AuthContextType {
     displayName: string,
     role: UserRole
   ) => Promise<boolean>;
+  updateRole: (role: UserRole) => void;
   logout: () => void;
 }
 
@@ -41,6 +42,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => false,
   register: async () => false,
+  updateRole: () => {},
   logout: () => {},
 });
 
@@ -132,6 +134,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   }, []);
 
+  const updateRole = useCallback((role: UserRole) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next: User = {
+        ...prev,
+        role,
+        roleLabel: ROLE_LABELS[role],
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setUser(null);
@@ -139,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, updateRole, logout }}>
       {children}
     </AuthContext.Provider>
   );
