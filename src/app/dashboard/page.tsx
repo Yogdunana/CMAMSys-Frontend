@@ -49,6 +49,7 @@ import {
   setCurrentTeamId,
   getCurrentTeamId,
   getTeamMemberByName,
+  getTriHandRoleLabel,
   seedSampleTeam,
   TEAM_ROLE_LABELS,
   Team,
@@ -117,9 +118,7 @@ export default function DashboardPage() {
     () => getTeamMemberByName(currentTeam, currentUserName),
     [currentTeam, currentUserName]
   );
-  const currentRoleLabel = currentTeamMember
-    ? TEAM_ROLE_LABELS[currentTeamMember.role]
-    : "暂未确定";
+  const currentRoleLabel = getTriHandRoleLabel(currentTeamMember?.role);
 
   /* ---------- 操作 ---------- */
   const handleEnter = (team: Team) => {
