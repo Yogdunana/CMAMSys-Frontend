@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { SidebarLayout } from "@/components/layout/sidebar";
@@ -24,6 +24,17 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  useEffect(() => {
+    if (isLoading) return;
+    if (!user && pathname !== "/login") {
+      router.replace("/login");
+      return;
+    }
+    if (user && pathname === "/login") {
+      router.replace("/dashboard");
+    }
+  }, [isLoading, pathname, router, user]);
+
   // 加载中
   if (isLoading) {
     return <LoadingScreen />;
@@ -31,13 +42,11 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 
   // 未登录且不在登录页 -> 重定向到登录页
   if (!user && pathname !== "/login") {
-    router.push("/login");
     return <LoadingScreen />;
   }
 
   // 已登录且在登录页 -> 重定向到个人主页
   if (user && pathname === "/login") {
-    router.push("/dashboard");
     return <LoadingScreen />;
   }
 

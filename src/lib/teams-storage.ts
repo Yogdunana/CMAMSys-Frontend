@@ -13,6 +13,13 @@ export const TEAM_ROLE_LABELS: Record<TeamRole, string> = {
   member: "暂未分配",
 };
 
+export function getTriHandRoleLabel(role: TeamRole | undefined): string {
+  if (role === "modeler" || role === "coder" || role === "writer") {
+    return TEAM_ROLE_LABELS[role];
+  }
+  return "暂未确定";
+}
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -45,6 +52,8 @@ const COLORS: Team["color"][] = [
   "rose",
 ];
 
+const TEAM_ROLES: TeamRole[] = ["modeler", "coder", "writer", "leader", "member"];
+
 function genId(): string {
   return (
     Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4)
@@ -60,6 +69,44 @@ export function genInviteCode(): string {
   return out;
 }
 
+function normalizeTeamRole(role: unknown): TeamRole {
+  return typeof role === "string" && TEAM_ROLES.includes(role as TeamRole)
+    ? role as TeamRole
+    : "member";
+}
+
+function normalizeTeamMembers(members: unknown): TeamMember[] {
+  if (!Array.isArray(members)) return [];
+  const usedIds = new Set<string>();
+
+  return members.reduce<TeamMember[]>((list, rawMember, idx) => {
+    if (!rawMember || typeof rawMember !== "object") return list;
+    const member = rawMember as Partial<TeamMember>;
+    const name = typeof member.name === "string" ? member.name.trim() : "";
+    if (!name || name === "张三（建模手）") return list;
+
+    const baseId =
+      typeof member.id === "string" && member.id.trim()
+        ? member.id.trim()
+        : `member-${idx}`;
+    let nextId = baseId;
+    let suffix = 1;
+    while (usedIds.has(nextId)) {
+      nextId = `${baseId}-${suffix}`;
+      suffix += 1;
+    }
+    usedIds.add(nextId);
+
+    list.push({
+      id: nextId,
+      name,
+      role: normalizeTeamRole(member.role),
+      avatar: typeof member.avatar === "string" ? member.avatar : undefined,
+    });
+    return list;
+  }, []);
+}
+
 export function readTeams(): Team[] {
   if (typeof window === "undefined") return [];
   try {
@@ -69,9 +116,7 @@ export function readTeams(): Team[] {
     if (!Array.isArray(list)) return [];
     return list.map((team: Team) => ({
       ...team,
-      members: Array.isArray(team.members)
-        ? team.members.filter((member) => member.name !== "张三（建模手）")
-        : [],
+      members: normalizeTeamMembers(team.members),
     }));
   } catch {
     return [];
@@ -80,7 +125,10 @@ export function readTeams(): Team[] {
 
 export function writeTeams(teams: Team[]): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(teams));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(teams.map((team) => ({ ...team, members: normalizeTeamMembers(team.members) })))
+  );
 }
 
 export function createTeam(input: {
@@ -105,7 +153,7 @@ export function createTeam(input: {
       {
         id: genId(),
         name: input.leaderName,
-        role: input.leaderRole ?? "leader",
+        role: input.leaderRole ?? "member",
       },
     ],
   };
@@ -201,7 +249,7 @@ export function seedSampleTeam(leaderName: string): void {
     currentStage: "建模手第二轮方案融合中",
     color: "indigo",
     members: [
-      { id: genId(), name: leaderName, role: "leader" },
+      { id: genId(), name: leaderName, role: "member" },
       { id: genId(), name: "李四（编程手）", role: "coder" },
       { id: genId(), name: "王五（论文手）", role: "writer" },
     ],

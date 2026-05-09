@@ -30,7 +30,7 @@ import { useAuth } from "@/contexts/auth-context";
 import {
   getCurrentTeam,
   getTeamMemberByName,
-  TEAM_ROLE_LABELS,
+  getTriHandRoleLabel,
 } from "@/lib/teams-storage";
 
 interface NavItem {
@@ -216,7 +216,7 @@ function SidebarContent({
   const roleLabel = useMemo(() => {
     const currentTeam = getCurrentTeam();
     const currentMember = getTeamMemberByName(currentTeam, displayName);
-    return currentMember ? TEAM_ROLE_LABELS[currentMember.role] : "暂未确定";
+    return getTriHandRoleLabel(currentMember?.role);
   }, [displayName, pathname, teamVersion]);
 
   useEffect(() => {

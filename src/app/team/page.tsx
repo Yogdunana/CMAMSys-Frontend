@@ -125,30 +125,65 @@ function toAssignment(id: string, name: string, role: TriRole): RoleAssignment {
   }
 }
 
+function normalizeAssignments(assignments: RoleAssignment[], currentName: string): RoleAssignment[] {
+  const usedIds = new Set<string>()
+  const usedRoles = new Set<TriRole>()
+  let hasCurrentUser = false
+
+  return assignments.reduce<RoleAssignment[]>((list, member, idx) => {
+    const isCurrentUser = member.name === currentName
+    if (isCurrentUser && hasCurrentUser) return list
+
+    const fallbackRole = ROLE_VALUES.find(role => !usedRoles.has(role)) ?? member.role
+    const role = usedRoles.has(member.role) ? fallbackRole : member.role
+    usedRoles.add(role)
+
+    const baseId = isCurrentUser
+      ? "current-user"
+      : member.id && member.id !== "current-user"
+        ? member.id
+        : `member-${idx}`
+    let nextId = baseId
+    let suffix = 1
+    while (usedIds.has(nextId)) {
+      nextId = `${baseId}-${suffix}`
+      suffix += 1
+    }
+    usedIds.add(nextId)
+    if (isCurrentUser) hasCurrentUser = true
+
+    list.push(toAssignment(nextId, member.name, role))
+    return list
+  }, [])
+}
+
 function buildAssignments(currentName: string, currentRole: UserRole | undefined): RoleAssignment[] {
   const userRole = isTriRole(currentRole) ? currentRole : "modeler"
   const remainingRoles = ROLE_VALUES.filter(role => role !== userRole)
   const demoNames = DEMO_MEMBER_NAMES.filter(name => name !== currentName).slice(0, 2)
-  return [
+  return normalizeAssignments([
     toAssignment("current-user", currentName, userRole),
     ...demoNames.map((name, idx) => toAssignment(`demo-${idx}`, name, remainingRoles[idx])),
-  ]
+  ], currentName)
 }
 
 function buildAssignmentsFromTeam(team: Team, currentName: string): RoleAssignment[] {
-  const members = team.members.length > 0 ? team.members : [{ id: "current-user", name: currentName, role: "member" as TeamRole }]
+  const sourceMembers = team.members.length > 0 ? team.members : [{ id: "current-user", name: currentName, role: "member" as TeamRole }]
+  const currentMember = sourceMembers.find(member => member.name === currentName)
+  const orderedMembers = currentMember
+    ? [currentMember, ...sourceMembers.filter(member => member.name !== currentName).slice(0, 2)]
+    : [
+        { id: "current-user", name: currentName, role: "member" as TeamRole },
+        ...sourceMembers.filter(member => member.name !== currentName).slice(0, 2),
+      ]
   const usedRoles = new Set<TriRole>()
-  const nextAssignments = members.slice(0, 3).map((member, idx) => {
+  const nextAssignments = orderedMembers.slice(0, 3).map((member, idx) => {
     const fallbackRole = ROLE_VALUES.find(role => !usedRoles.has(role)) ?? ROLE_VALUES[idx % ROLE_VALUES.length]
     const role = isTeamTriRole(member.role) && !usedRoles.has(member.role) ? member.role : fallbackRole
     usedRoles.add(role)
     return toAssignment(member.name === currentName ? "current-user" : member.id, member.name, role)
   })
-  if (!nextAssignments.some(member => member.name === currentName)) {
-    const fallbackRole = ROLE_VALUES.find(role => !usedRoles.has(role)) ?? "modeler"
-    nextAssignments.unshift(toAssignment("current-user", currentName, fallbackRole))
-  }
-  return nextAssignments.slice(0, 3)
+  return normalizeAssignments(nextAssignments, currentName).slice(0, 3)
 }
 
 function buildInitialChat(assignments: RoleAssignment[]): ChatMessage[] {
@@ -269,6 +304,7 @@ export default function TeamPage() {
   }, [currentUserName, router, showToast])
 
   const saveTeamSnapshot = (assignments = roleAssignments, complete = allConfirmed) => {
+    const normalizedAssignments = normalizeAssignments(assignments, currentUserName)
     const nextTeam: Team = {
       id: currentTeam?.id ?? editTeamId ?? teamId,
       name: teamName.trim() || "数模之星队",
@@ -279,7 +315,7 @@ export default function TeamPage() {
       progress: complete ? 100 : Math.max(currentTeam?.progress ?? 0, currentStep >= 5 ? 80 : 20),
       currentStage: complete ? "团队角色分配已确认" : "团队组建与角色分配中",
       color: currentTeam?.color ?? "purple",
-      members: assignments.map((member) => ({
+      members: normalizedAssignments.map((member) => ({
         id: member.id,
         name: member.name,
         role: member.role,
