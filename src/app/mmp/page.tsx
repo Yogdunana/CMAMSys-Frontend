@@ -194,12 +194,17 @@ export default function MMPPage() {
   const [expandedChapter, setExpandedChapter] = useState<number | null>(1);
   const [detailEntry, setDetailEntry] = useState<MMPLogEntry | null>(null);
   const [chainDialogOpen, setChainDialogOpen] = useState(false);
+  const [chainViewedAt, setChainViewedAt] = useState<number | null>(null);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
 
   /* ---------- 初始化：种子 + 读取 ---------- */
   useEffect(() => {
-    seedIfEmpty();
-    setLog(readMMPLog());
+    const timer = window.setTimeout(() => {
+      seedIfEmpty();
+      setLog(readMMPLog());
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const refresh = useCallback(() => {
@@ -460,7 +465,10 @@ export default function MMPPage() {
                 />
                 <div className="pt-2">
                   <Button
-                    onClick={() => setChainDialogOpen(true)}
+                    onClick={() => {
+                      setChainViewedAt(Date.now());
+                      setChainDialogOpen(true);
+                    }}
                     className="gradient-bg text-white shadow-lg"
                   >
                     <ExternalLink className="w-4 h-4 mr-1.5" />
@@ -659,7 +667,7 @@ export default function MMPPage() {
                 latestEntry
                   ? `${new Date(latestEntry.timestamp).toLocaleString("zh-CN")} (${
                       Math.floor(
-                        (Date.now() - latestEntry.timestamp) / 1000
+                        ((chainViewedAt ?? latestEntry.timestamp) - latestEntry.timestamp) / 1000
                       )
                     }s ago)`
                   : "—"

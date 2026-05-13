@@ -157,39 +157,33 @@ export default function Home() {
   const [advantageDialog, setAdvantageDialog] = useState<AdvantageCard | null>(null);
 
   return (
-    <div className="min-h-full bg-gradient-bg-mesh">
+    <div className="min-h-full gradient-bg-mesh">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* 欢迎横幅 */}
-        <div className="particles-bg relative overflow-hidden rounded-3xl gradient-bg p-8 mb-8">
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="size-5 text-white/90" />
-              <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
-                欢迎回来
-              </Badge>
+        {/* 系统概览横幅 */}
+        <div className="relative mb-8 overflow-hidden rounded-3xl border border-border/70 bg-card/95 p-6 shadow-[var(--shadow-card)] sm:p-8">
+          <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-bg-subtle opacity-70" />
+          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="mb-3 flex items-center gap-2">
+                <Sparkles className="size-5 text-primary" />
+                <Badge variant="secondary">系统概览</Badge>
+              </div>
+              <h1 className="mb-3 text-3xl font-bold text-foreground sm:text-4xl">
+                数学建模协作控制台
+              </h1>
+              <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
+                CMAMSys 将团队组建、三手协作、知识沉淀与 MMP 存证集中到一个工作台，帮助队伍更清楚地推进每个建模阶段。
+              </p>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
-              开启数学建模协作新时代
-            </h1>
-            <p className="text-white/80 text-base max-w-2xl mb-6">
-              CMAMSys 是一个AI驱动的数学建模全流程协作工具，帮助团队高效完成从问题分析到模型验证的完整建模过程
-            </p>
             <div className="flex flex-wrap gap-3">
               <a href="/workflow">
-                <Button
-                  size="lg"
-                  className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg shadow-white/20"
-                >
+                <Button size="lg" className="min-h-10 rounded-xl">
                   开始建模
                   <ArrowRight className="ml-2 size-4" />
                 </Button>
               </a>
               <a href="/guide">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="!border-white/30 !bg-transparent !text-white hover:!bg-white/10 hover:!text-white"
-                >
+                <Button size="lg" variant="outline" className="min-h-10 rounded-xl">
                   查看教程
                 </Button>
               </a>
@@ -259,10 +253,10 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* 团队1：思路研讨阶段 */}
-            <Card className="group relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer" onClick={() => router.push("/modeler")}>
+            <Card className="group relative cursor-pointer overflow-hidden rounded-2xl border-border/70 bg-card/95 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]" onClick={() => router.push("/modeler")}>
               <CardContent className="p-5">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 shadow-lg">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-chart-1 text-white shadow-sm">
                     <Users className="size-5 text-white" />
                   </div>
                   <div>
@@ -273,28 +267,28 @@ export default function Home() {
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">阶段</span>
-                    <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">思路研讨</Badge>
+                    <Badge className="bg-chart-1/10 text-chart-1">思路研讨</Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">进度</span>
                     <span className="font-medium text-foreground">65%</span>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full" style={{ width: "65%" }}></div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div className="bg-chart-1 h-2 rounded-full" style={{ width: "65%" }}></div>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">建模手正在进行AI三轮辩论...</p>
-                <div className="flex items-center justify-end mt-3 text-sm text-purple-600 dark:text-purple-400 font-medium group-hover:translate-x-1 transition-transform">
+                <div className="flex items-center justify-end mt-3 text-sm text-chart-1 font-medium group-hover:translate-x-1 transition-transform">
                   查看详情 <ArrowRight className="ml-1 size-3.5" />
                 </div>
               </CardContent>
             </Card>
 
             {/* 团队2：代码实现阶段 */}
-            <Card className="group relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer" onClick={() => router.push("/programmer")}>
+            <Card className="group relative cursor-pointer overflow-hidden rounded-2xl border-border/70 bg-card/95 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]" onClick={() => router.push("/programmer")}>
               <CardContent className="p-5">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 shadow-lg">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-chart-2 text-white shadow-sm">
                     <Brain className="size-5 text-white" />
                   </div>
                   <div>
@@ -305,28 +299,28 @@ export default function Home() {
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">阶段</span>
-                    <Badge className="bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300">代码实现</Badge>
+                    <Badge className="bg-chart-2/10 text-chart-2">代码实现</Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">进度</span>
                     <span className="font-medium text-foreground">78%</span>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full" style={{ width: "78%" }}></div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div className="bg-chart-2 h-2 rounded-full" style={{ width: "78%" }}></div>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">编程手正在调试SEIR模型参数...</p>
-                <div className="flex items-center justify-end mt-3 text-sm text-cyan-600 dark:text-cyan-400 font-medium group-hover:translate-x-1 transition-transform">
+                <div className="flex items-center justify-end mt-3 text-sm text-chart-2 font-medium group-hover:translate-x-1 transition-transform">
                   查看详情 <ArrowRight className="ml-1 size-3.5" />
                 </div>
               </CardContent>
             </Card>
 
             {/* 团队3：论文撰写阶段 */}
-            <Card className="group relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer" onClick={() => router.push("/writer")}>
+            <Card className="group relative cursor-pointer overflow-hidden rounded-2xl border-border/70 bg-card/95 shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]" onClick={() => router.push("/writer")}>
               <CardContent className="p-5">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-chart-4 text-white shadow-sm">
                     <FileText className="size-5 text-white" />
                   </div>
                   <div>
@@ -337,18 +331,18 @@ export default function Home() {
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">阶段</span>
-                    <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">论文撰写</Badge>
+                    <Badge className="bg-chart-4/10 text-chart-4">论文撰写</Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">进度</span>
                     <span className="font-medium text-foreground">92%</span>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full" style={{ width: "92%" }}></div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div className="bg-chart-4 h-2 rounded-full" style={{ width: "92%" }}></div>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">论文手正在整合最终成果...</p>
-                <div className="flex items-center justify-end mt-3 text-sm text-amber-600 dark:text-amber-400 font-medium group-hover:translate-x-1 transition-transform">
+                <div className="flex items-center justify-end mt-3 text-sm text-chart-4 font-medium group-hover:translate-x-1 transition-transform">
                   查看详情 <ArrowRight className="ml-1 size-3.5" />
                 </div>
               </CardContent>
@@ -370,21 +364,21 @@ export default function Home() {
               <Card
                 key={index}
                 className={cn(
-                  "group relative overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-md",
-                  "transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+                  "group relative cursor-pointer overflow-hidden rounded-2xl border-border/70 bg-card/95",
+                  "shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]"
                 )}
                 onClick={() => setAdvantageDialog(card)}
               >
                 <CardContent className="relative p-5">
                   <div
                     className={cn(
-                      "flex size-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg transition-transform duration-300 group-hover:scale-110 mb-4",
-                      card.gradient === "indigo" && "from-indigo-500 to-indigo-600",
-                      card.gradient === "cyan" && "from-cyan-500 to-blue-500",
-                      card.gradient === "purple" && "from-purple-500 to-violet-600",
-                      card.gradient === "emerald" && "from-emerald-500 to-teal-500",
-                      card.gradient === "amber" && "from-amber-500 to-orange-500",
-                      card.gradient === "rose" && "from-rose-500 to-pink-500"
+                      "mb-4 flex size-12 items-center justify-center rounded-xl text-white shadow-sm transition-transform duration-200 group-hover:scale-105",
+                      card.gradient === "indigo" && "bg-chart-1",
+                      card.gradient === "cyan" && "bg-chart-2",
+                      card.gradient === "purple" && "bg-chart-5",
+                      card.gradient === "emerald" && "bg-chart-3",
+                      card.gradient === "amber" && "bg-chart-4",
+                      card.gradient === "rose" && "bg-rose-500"
                     )}
                   >
                     <div className="text-white">{card.icon}</div>
@@ -410,7 +404,7 @@ export default function Home() {
               <ArrowRight className="ml-1 size-3.5" />
             </Button>
           </div>
-          <Card className="glass-card-strong rounded-2xl border-0">
+          <Card className="rounded-2xl border-border/70 bg-card/95 shadow-[var(--shadow-card)]">
             <CardContent className="p-0">
               <div className="divide-y divide-border/50">
                 {recentActivities.map((activity, index) => (

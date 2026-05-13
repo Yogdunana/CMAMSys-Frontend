@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface BreadcrumbItem {
   label: string;
@@ -25,26 +25,26 @@ export function PageHeader({
   actions,
 }: PageHeaderProps) {
   return (
-    <div className="glass-card-strong rounded-2xl px-6 py-5 mb-6">
+    <div className="mb-6 rounded-2xl border border-border/70 bg-card/95 px-6 py-5 shadow-[var(--shadow-card)]">
       {/* 面包屑 */}
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="flex items-center gap-1.5 mb-3 text-sm">
-          <a
+          <Link
             href="/"
-            className="flex items-center text-muted-foreground hover:text-indigo-500 transition-colors"
+            className="flex min-h-8 min-w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
           >
             <Home className="size-3.5" />
-          </a>
+          </Link>
           {breadcrumbs.map((item, index) => (
             <React.Fragment key={index}>
               <ChevronRight className="size-3 text-muted-foreground/50" />
               {item.href ? (
-                <a
+                <Link
                   href={item.href}
-                  className="text-muted-foreground hover:text-indigo-500 transition-colors"
+                  className="rounded-md px-1.5 py-1 text-muted-foreground transition-colors hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                 >
                   {item.label}
-                </a>
+                </Link>
               ) : (
                 <span className="text-foreground font-medium">{item.label}</span>
               )}
@@ -57,7 +57,7 @@ export function PageHeader({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           {icon && (
-            <div className="gradient-icon size-10 shrink-0">
+            <div className="gradient-icon size-10 shrink-0 shadow-none">
               {icon}
             </div>
           )}

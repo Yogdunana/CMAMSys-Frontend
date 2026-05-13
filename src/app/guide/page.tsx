@@ -175,7 +175,7 @@ export default function GuidePage() {
   };
 
   return (
-    <div className="min-h-full bg-gradient-bg-mesh">
+    <div className="min-h-full gradient-bg-mesh">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 顶部进度条 */}
         <div className="mb-8">
@@ -386,10 +386,12 @@ function Step1AIDebatePreview() {
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     const currentRound = debateRounds[roundIndex];
-    setActiveLine(0);
-    setTyped("");
-    setCompleted([]);
-    setShowDecision(false);
+    timers.push(setTimeout(() => {
+      setActiveLine(0);
+      setTyped("");
+      setCompleted([]);
+      setShowDecision(false);
+    }, 0));
 
     let delay = 220;
     currentRound.messages.forEach((message, messageIndex) => {
@@ -732,28 +734,33 @@ function Step4PreviewMMPFeed() {
 
   // 加载真实日志，没有则用 demo 数据
   useEffect(() => {
-    const real = readMMPLog();
-    if (real.length > 0) {
-      setFeed(real.slice(-5).reverse());
-    } else {
-      // 演示数据（用于无日志情况下也有动效）
-      const demo: MMPLogEntry[] = Array.from({ length: 4 }).map((_, i) => ({
-        id: `demo-${i}`,
-        timestamp: Date.now() - (i + 1) * 60000,
-        isoTime: new Date(Date.now() - (i + 1) * 60000).toLocaleTimeString("zh-CN"),
-        role: (["modeler", "coder", "writer"] as const)[i % 3],
-        roleName: ["建模手", "编程手", "论文手"][i % 3],
-        action: "edit",
-        actionLabel: ["提交方案", "运行代码", "插入素材", "保存草稿"][i % 4],
-        description: ["提交融合后的建模方案", "运行求解脚本", "引用文献到论文", "自动保存"][i % 4],
-        hash: `0x${"abcdef0123456789".repeat(4).slice(0, 64)}`,
-        hashShort: `0x${"abcdef01".slice(0, 8)}`,
-        blockNumber: 18234567 + i,
-        gasUsed: 21000 + i * 500,
-        txHash: `0x${"f".repeat(64)}`,
-      }));
-      setFeed(demo);
-    }
+    const timer = setTimeout(() => {
+      const real = readMMPLog();
+      if (real.length > 0) {
+        setFeed(real.slice(-5).reverse());
+      } else {
+        const now = Date.now();
+        // 演示数据（用于无日志情况下也有动效）
+        const demo: MMPLogEntry[] = Array.from({ length: 4 }).map((_, i) => ({
+          id: `demo-${i}`,
+          timestamp: now - (i + 1) * 60000,
+          isoTime: new Date(now - (i + 1) * 60000).toLocaleTimeString("zh-CN"),
+          role: (["modeler", "coder", "writer"] as const)[i % 3],
+          roleName: ["建模手", "编程手", "论文手"][i % 3],
+          action: "edit",
+          actionLabel: ["提交方案", "运行代码", "插入素材", "保存草稿"][i % 4],
+          description: ["提交融合后的建模方案", "运行求解脚本", "引用文献到论文", "自动保存"][i % 4],
+          hash: `0x${"abcdef0123456789".repeat(4).slice(0, 64)}`,
+          hashShort: `0x${"abcdef01".slice(0, 8)}`,
+          blockNumber: 18234567 + i,
+          gasUsed: 21000 + i * 500,
+          txHash: `0x${"f".repeat(64)}`,
+        }));
+        setFeed(demo);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // 每 1.8s 滚动一次（模拟新事件冒头）
