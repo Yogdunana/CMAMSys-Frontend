@@ -37,30 +37,28 @@ interface NavItem {
   label: string;
   href: string;
   icon: React.ElementType;
-  emoji: string;
   children?: NavItem[];
 }
 
 const navItems: NavItem[] = [
-  { label: "个人主页", href: "/dashboard", icon: LayoutDashboard, emoji: "\u{1F464}" },
-  { label: "系统概览", href: "/", icon: Home, emoji: "\u{1F3E0}" },
-  { label: "团队组建", href: "/team", icon: Users, emoji: "\u{1F465}" },
-  { label: "新手引导", href: "/guide", icon: Workflow, emoji: "\u{1F504}" },
+  { label: "个人主页", href: "/dashboard", icon: LayoutDashboard },
+  { label: "系统概览", href: "/", icon: Home },
+  { label: "团队组建", href: "/team", icon: Users },
+  { label: "新手引导", href: "/guide", icon: Workflow },
   {
     label: "协作工作流",
     href: "/workflow",
     icon: Workflow,
-    emoji: "\u{1F91D}",
     children: [
-      { label: "建模手工作台", href: "/modeler", icon: Brain, emoji: "\u{1F9E0}" },
-      { label: "编程手工作台", href: "/programmer", icon: Code, emoji: "\u{1F4BB}" },
-      { label: "论文手工作台", href: "/writer", icon: PenTool, emoji: "\u{270F}\u{FE0F}" },
+      { label: "建模手工作台", href: "/modeler", icon: Brain },
+      { label: "编程手工作台", href: "/programmer", icon: Code },
+      { label: "论文手工作台", href: "/writer", icon: PenTool },
     ],
   },
-  { label: "知识库", href: "/knowledge", icon: BookOpen, emoji: "\u{1F4DA}" },
-  { label: "工作空间", href: "/workspace", icon: FolderOpen, emoji: "\u{1F4BC}" },
-  { label: "MMP文件", href: "/mmp", icon: FileText, emoji: "\u{1F4C4}" },
-  { label: "能力Card", href: "/card", icon: Award, emoji: "\u{1F3C5}" },
+  { label: "知识库", href: "/knowledge", icon: BookOpen },
+  { label: "工作空间", href: "/workspace", icon: FolderOpen },
+  { label: "MMP文件", href: "/mmp", icon: FileText },
+  { label: "能力Card", href: "/card", icon: Award },
 ];
 
 function NavItemComponent({ item, isActive, isCollapsed }: { item: NavItem; isActive: boolean; isCollapsed: boolean }) {
@@ -70,11 +68,11 @@ function NavItemComponent({ item, isActive, isCollapsed }: { item: NavItem; isAc
     <Link
       href={item.href}
       className={cn(
-        "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+        "group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50",
         isCollapsed && "justify-center px-2",
         isActive
-          ? "bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-cyan-500/10 text-indigo-600 shadow-sm"
-          : "text-muted-foreground hover:bg-gradient-to-r hover:from-indigo-500/5 hover:via-purple-500/5 hover:to-cyan-500/5 hover:text-foreground"
+          ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+          : "text-sidebar-foreground/72 hover:bg-white/10 hover:text-sidebar-foreground"
       )}
     >
       <div
@@ -82,8 +80,8 @@ function NavItemComponent({ item, isActive, isCollapsed }: { item: NavItem; isAc
           "flex items-center justify-center rounded-lg transition-all duration-200",
           isCollapsed ? "size-9" : "size-8",
           isActive
-            ? "bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25"
-            : "bg-muted/60 text-muted-foreground group-hover:bg-gradient-to-br group-hover:from-indigo-500/10 group-hover:to-purple-500/10 group-hover:text-indigo-500"
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "bg-white/10 text-sidebar-foreground/72 group-hover:bg-white/15 group-hover:text-sidebar-foreground"
         )}
       >
         <Icon className="size-4" />
@@ -92,7 +90,7 @@ function NavItemComponent({ item, isActive, isCollapsed }: { item: NavItem; isAc
         <span className="truncate">{item.label}</span>
       )}
       {!isCollapsed && isActive && (
-        <div className="ml-auto h-1.5 w-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500" />
+        <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
       )}
     </Link>
   );
@@ -112,11 +110,7 @@ function NavGroup({
   const selfActive = pathname === item.href;
   const anyActive = childActive || selfActive;
   const [open, setOpen] = useState(anyActive);
-
-  // 当进入子路由时自动展开
-  React.useEffect(() => {
-    if (anyActive) setOpen(true);
-  }, [anyActive]);
+  const isOpen = open || anyActive;
 
   if (isCollapsed) {
     // 折叠态：把父项做为 hub 链接显示
@@ -134,19 +128,20 @@ function NavGroup({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={isOpen}
         className={cn(
-          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 w-full text-left",
+          "group flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50",
           anyActive
-            ? "bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-cyan-500/10 text-indigo-600 shadow-sm"
-            : "text-muted-foreground hover:bg-gradient-to-r hover:from-indigo-500/5 hover:via-purple-500/5 hover:to-cyan-500/5 hover:text-foreground"
+            ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+            : "text-sidebar-foreground/72 hover:bg-white/10 hover:text-sidebar-foreground"
         )}
       >
         <div
           className={cn(
             "flex items-center justify-center rounded-lg size-8 transition-all",
             anyActive
-              ? "bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/25"
-              : "bg-muted/60 text-muted-foreground group-hover:bg-gradient-to-br group-hover:from-indigo-500/10 group-hover:to-purple-500/10 group-hover:text-indigo-500"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-white/10 text-sidebar-foreground/72 group-hover:bg-white/15 group-hover:text-sidebar-foreground"
           )}
         >
           <Icon className="size-4" />
@@ -154,20 +149,20 @@ function NavGroup({
         <span className="truncate flex-1">{item.label}</span>
         <ChevronDown
           className={cn(
-            "size-4 text-muted-foreground transition-transform duration-200",
-            open && "rotate-180"
+            "size-4 text-current/70 transition-transform duration-200",
+            isOpen && "rotate-180"
           )}
         />
       </button>
-      {open && (
-        <div className="mt-1 ml-4 pl-3 border-l border-border/60 space-y-1">
+      {isOpen && (
+        <div className="mt-1 ml-4 space-y-1 border-l border-white/15 pl-3">
           <Link
             href={item.href}
             className={cn(
-              "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors",
+              "flex min-h-9 items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50",
               selfActive
-                ? "text-indigo-600 bg-indigo-500/10 font-medium"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                ? "bg-white/15 text-sidebar-foreground font-medium"
+                : "text-sidebar-foreground/65 hover:bg-white/10 hover:text-sidebar-foreground"
             )}
           >
             <div className="size-1.5 rounded-full bg-current opacity-50" />
@@ -181,10 +176,10 @@ function NavGroup({
                 key={child.href}
                 href={child.href}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors",
+                  "flex min-h-9 items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50",
                   active
-                    ? "text-indigo-600 bg-indigo-500/10 font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    ? "bg-white/15 text-sidebar-foreground font-medium"
+                    : "text-sidebar-foreground/65 hover:bg-white/10 hover:text-sidebar-foreground"
                 )}
               >
                 <ChildIcon className="size-3.5" />
@@ -201,11 +196,9 @@ function NavGroup({
 function SidebarContent({
   isCollapsed,
   onToggle,
-  onClose,
 }: {
   isCollapsed: boolean;
   onToggle: () => void;
-  onClose?: () => void;
 }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
@@ -229,7 +222,7 @@ function SidebarContent({
     <div className="flex h-full flex-col">
       {/* Logo区域 */}
       <Link href="/" className={cn(
-        "flex items-center border-b border-border/50 px-4 py-4 cursor-pointer hover:bg-muted/30 transition-colors",
+        "flex min-h-[76px] cursor-pointer items-center border-b border-white/15 px-4 py-4 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50",
         isCollapsed ? "justify-center px-2" : "gap-3"
       )}>
         {isCollapsed ? (
@@ -238,7 +231,7 @@ function SidebarContent({
             alt="CMAMSys"
             width={36}
             height={40}
-            className="transition-transform hover:scale-105"
+            className="brightness-0 invert transition-transform hover:scale-105"
             priority
           />
         ) : (
@@ -247,14 +240,14 @@ function SidebarContent({
             alt="CMAMSys - 数学建模协作系统"
             width={140}
             height={62}
-            className="transition-transform hover:scale-[1.02]"
+            className="brightness-0 invert transition-transform hover:scale-[1.02]"
             priority
           />
         )}
       </Link>
 
       {/* 导航区域 */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="主导航">
         <div className="space-y-1">
           {navItems.map((item) => {
             if (item.children && item.children.length > 0) {
@@ -280,12 +273,13 @@ function SidebarContent({
       </nav>
 
       {/* 折叠按钮 */}
-      <div className="hidden lg:flex border-t border-border/50 px-3 py-3">
+      <div className="hidden border-t border-white/15 px-3 py-3 lg:flex">
         <Button
           variant="ghost"
           size="sm"
           onClick={onToggle}
-          className="w-full justify-center text-muted-foreground hover:text-foreground"
+          aria-label={isCollapsed ? "展开侧栏" : "收起侧栏"}
+          className="w-full justify-center text-sidebar-foreground/72 hover:bg-white/10 hover:text-sidebar-foreground"
         >
           {isCollapsed ? (
             <ChevronRight className="size-4" />
@@ -300,30 +294,31 @@ function SidebarContent({
 
       {/* 用户信息 */}
       <div className={cn(
-        "border-t border-border/50 px-3 py-4",
+        "border-t border-white/15 px-3 py-4",
         isCollapsed ? "flex justify-center" : ""
       )}>
         <div className={cn(
-          "flex items-center gap-3 rounded-xl bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-cyan-500/5 p-2.5",
+          "flex items-center gap-3 rounded-xl bg-white/10 p-2.5 ring-1 ring-white/10",
           isCollapsed && "p-2"
         )}>
           <Avatar size={isCollapsed ? "default" : "lg"}>
-            <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-xs font-semibold">
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
           {!isCollapsed && (
             <>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-medium truncate">{displayName}</span>
-                <span className="text-[11px] text-muted-foreground truncate">
+                <span className="text-sm font-medium text-sidebar-foreground truncate">{displayName}</span>
+                <span className="text-[11px] text-sidebar-foreground/62 truncate">
                   {roleLabel}
                 </span>
               </div>
               <button
                 onClick={logout}
                 title="退出登录"
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                aria-label="退出登录"
+                className="min-h-9 min-w-9 rounded-lg p-1.5 text-sidebar-foreground/65 transition-colors hover:bg-red-500/15 hover:text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50"
               >
                 <LogOut className="size-4" />
               </button>
@@ -344,8 +339,8 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
       {/* 桌面端侧边栏 */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col h-screen sticky top-0 border-r border-border/50 transition-all duration-300 ease-in-out",
-          "bg-white/80 backdrop-blur-xl",
+          "hidden lg:flex flex-col h-screen sticky top-0 border-r border-sidebar-border transition-all duration-300 ease-in-out",
+          "bg-sidebar text-sidebar-foreground",
           isCollapsed ? "w-[72px]" : "w-[260px]"
         )}
       >
@@ -366,7 +361,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
       {/* 移动端侧边栏 */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[280px] border-r border-border/50 bg-white/95 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:hidden",
+          "fixed inset-y-0 left-0 z-50 w-[280px] border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-in-out lg:hidden",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -375,7 +370,8 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
             variant="ghost"
             size="icon-sm"
             onClick={() => setIsMobileOpen(false)}
-            className="text-muted-foreground hover:text-foreground"
+            aria-label="关闭导航"
+            className="text-sidebar-foreground/72 hover:bg-white/10 hover:text-sidebar-foreground"
           >
             <X className="size-4" />
           </Button>
@@ -383,18 +379,18 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
         <SidebarContent
           isCollapsed={false}
           onToggle={() => setIsMobileOpen(false)}
-          onClose={() => setIsMobileOpen(false)}
         />
       </aside>
 
       {/* 主内容区 */}
-      <main className="flex-1 min-w-0">
+      <main className="flex-1 min-w-0 bg-[var(--dashboard-bg)]">
         {/* 移动端顶部栏 */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/50 bg-white/80 backdrop-blur-xl px-4 lg:hidden">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/60 bg-card/90 backdrop-blur-xl px-4 lg:hidden">
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={() => setIsMobileOpen(true)}
+            aria-label="打开导航"
             className="text-muted-foreground hover:text-foreground"
           >
             <Menu className="size-5" />

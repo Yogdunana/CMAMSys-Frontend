@@ -944,7 +944,7 @@ export default function ProgrammerPage() {
                   <div className="p-3 font-mono text-xs space-y-0.5 overflow-y-auto h-[calc(100%-32px)]">
                     {terminalLines.length === 0 && !isRunning && (
                       <div className="text-gray-600">
-                        <span className="text-cyan-400">$</span> 点击"运行"按钮执行代码...
+                        <span className="text-cyan-400">$</span> 点击&quot;运行&quot;按钮执行代码...
                       </div>
                     )}
                     {terminalLines.map((line, idx) => (

@@ -237,6 +237,7 @@ export default function TeamPage() {
   const [copied, setCopied] = useState(false)
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
   const [teamId, setTeamId] = useState(() => makeId())
+  const [createdAtFallback] = useState(() => Date.now())
   const competitionLabel = useMemo(() => {
     if (competition === "mcm") return "MCM"
     if (competition === "icm") return "ICM"
@@ -264,43 +265,47 @@ export default function TeamPage() {
   const allConfirmed = roleAssignments.every(member => confirmedRoles[member.id])
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const targetTeamId = params.get("teamId")
-    const mode = params.get("mode")
-    if (targetTeamId && mode === "editRoles") {
-      const team = getTeamById(targetTeamId)
-      if (!team) {
-        showToast("未找到要调整的团队", "warning")
-        router.push("/dashboard")
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search)
+      const targetTeamId = params.get("teamId")
+      const mode = params.get("mode")
+      if (targetTeamId && mode === "editRoles") {
+        const team = getTeamById(targetTeamId)
+        if (!team) {
+          showToast("未找到要调整的团队", "warning")
+          router.push("/dashboard")
+          return
+        }
+        const nextAssignments = buildAssignmentsFromTeam(team, currentUserName)
+        setEditTeamId(team.id)
+        setIsEditingExistingTeam(true)
+        setCurrentTeam(team)
+        setTeamId(team.id)
+        setTeamName(team.name)
+        setCompetition(team.competition)
+        setTeamDesc(team.goal)
+        setInviteCode(team.inviteCode)
+        setRoleAssignments(nextAssignments)
+        setChatMessages(buildInitialChat(nextAssignments))
+        setConfirmedRoles({})
+        setEditingMemberId(null)
+        setAnalysisDone(true)
+        setCurrentStep(5)
+        setCurrentTeamId(team.id)
         return
       }
-      const nextAssignments = buildAssignmentsFromTeam(team, currentUserName)
-      setEditTeamId(team.id)
-      setIsEditingExistingTeam(true)
-      setCurrentTeam(team)
-      setTeamId(team.id)
-      setTeamName(team.name)
-      setCompetition(team.competition)
-      setTeamDesc(team.goal)
-      setInviteCode(team.inviteCode)
+      const nextAssignments = buildAssignments(currentUserName, undefined)
+      setEditTeamId(null)
+      setIsEditingExistingTeam(false)
       setRoleAssignments(nextAssignments)
       setChatMessages(buildInitialChat(nextAssignments))
       setConfirmedRoles({})
       setEditingMemberId(null)
-      setAnalysisDone(true)
-      setCurrentStep(5)
-      setCurrentTeamId(team.id)
-      return
-    }
-    const nextAssignments = buildAssignments(currentUserName, undefined)
-    setEditTeamId(null)
-    setIsEditingExistingTeam(false)
-    setRoleAssignments(nextAssignments)
-    setChatMessages(buildInitialChat(nextAssignments))
-    setConfirmedRoles({})
-    setEditingMemberId(null)
-    setCurrentTeam(null)
-    setTeamId(makeId())
+      setCurrentTeam(null)
+      setTeamId(makeId())
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [currentUserName, router, showToast])
 
   const saveTeamSnapshot = (assignments = roleAssignments, complete = allConfirmed) => {
@@ -311,7 +316,7 @@ export default function TeamPage() {
       competition: competitionLabel,
       goal: teamDesc.trim() || "完成数学建模竞赛协作",
       inviteCode,
-      createdAt: currentTeam?.createdAt ?? Date.now(),
+      createdAt: currentTeam?.createdAt ?? createdAtFallback,
       progress: complete ? 100 : Math.max(currentTeam?.progress ?? 0, currentStep >= 5 ? 80 : 20),
       currentStage: complete ? "团队角色分配已确认" : "团队组建与角色分配中",
       color: currentTeam?.color ?? "purple",

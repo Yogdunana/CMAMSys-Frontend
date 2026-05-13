@@ -17,34 +17,34 @@ interface StatCardProps {
 
 const gradientStyles = {
   indigo: {
-    icon: "from-indigo-500 to-indigo-600",
-    border: "from-indigo-500/20 via-purple-500/20 to-cyan-500/20",
-    glow: "group-hover:shadow-indigo-500/10",
+    icon: "bg-chart-1 text-white",
+    rail: "bg-chart-1",
+    tint: "bg-chart-1/10 text-chart-1",
   },
   cyan: {
-    icon: "from-cyan-500 to-blue-500",
-    border: "from-cyan-500/20 via-blue-500/20 to-indigo-500/20",
-    glow: "group-hover:shadow-cyan-500/10",
+    icon: "bg-chart-2 text-white",
+    rail: "bg-chart-2",
+    tint: "bg-chart-2/10 text-chart-2",
   },
   purple: {
-    icon: "from-purple-500 to-violet-600",
-    border: "from-purple-500/20 via-violet-500/20 to-fuchsia-500/20",
-    glow: "group-hover:shadow-purple-500/10",
+    icon: "bg-chart-5 text-white",
+    rail: "bg-chart-5",
+    tint: "bg-chart-5/10 text-chart-5",
   },
   emerald: {
-    icon: "from-emerald-500 to-teal-500",
-    border: "from-emerald-500/20 via-teal-500/20 to-cyan-500/20",
-    glow: "group-hover:shadow-emerald-500/10",
+    icon: "bg-chart-3 text-white",
+    rail: "bg-chart-3",
+    tint: "bg-chart-3/10 text-chart-3",
   },
   amber: {
-    icon: "from-amber-500 to-orange-500",
-    border: "from-amber-500/20 via-orange-500/20 to-rose-500/20",
-    glow: "group-hover:shadow-amber-500/10",
+    icon: "bg-chart-4 text-white",
+    rail: "bg-chart-4",
+    tint: "bg-chart-4/10 text-chart-4",
   },
   rose: {
-    icon: "from-rose-500 to-pink-500",
-    border: "from-rose-500/20 via-pink-500/20 to-purple-500/20",
-    glow: "group-hover:shadow-rose-500/10",
+    icon: "bg-rose-500 text-white",
+    rail: "bg-rose-500",
+    tint: "bg-rose-500/10 text-rose-600",
   },
 };
 
@@ -63,21 +63,12 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-md",
-        "transition-all duration-300 hover:-translate-y-1 hover:shadow-xl",
-        style.glow,
+        "group relative overflow-hidden rounded-2xl border border-border/70 bg-card/95",
+        "shadow-[var(--shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]",
         className
       )}
     >
-      {/* 渐变边框效果 */}
-      <div
-        className={cn(
-          "absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-[1px]",
-          style.border
-        )}
-      >
-        <div className="w-full h-full rounded-2xl bg-white" />
-      </div>
+      <div className={cn("absolute inset-y-0 left-0 w-1", style.rail)} />
 
       <CardContent className="relative p-5">
         <div className="flex items-start justify-between">
@@ -90,14 +81,10 @@ export function StatCard({
             </span>
             {change !== undefined && (
               <div className="flex items-center gap-1.5">
-                <div
-                  className={cn(
-                    "flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold",
-                    isPositive
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-rose-50 text-rose-600"
-                  )}
-                >
+                <div className={cn(
+                  "flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold",
+                  isPositive ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"
+                )}>
                   {isPositive ? (
                     <TrendingUp className="size-3" />
                   ) : (
@@ -116,11 +103,11 @@ export function StatCard({
           </div>
           <div
             className={cn(
-              "flex size-11 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg transition-transform duration-300 group-hover:scale-110",
+              "flex size-11 items-center justify-center rounded-xl shadow-sm transition-transform duration-200 group-hover:scale-105",
               style.icon
             )}
           >
-            <div className="text-white">{icon}</div>
+            {icon}
           </div>
         </div>
       </CardContent>

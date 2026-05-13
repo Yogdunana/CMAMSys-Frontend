@@ -3,12 +3,53 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2, Brain, Code, PenTool, HelpCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, Brain, Code, PenTool, HelpCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { useAuth, UserRole } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
+
+const roleOptions: {
+  value: UserRole;
+  label: string;
+  desc: string;
+  icon: React.ElementType;
+  tone: string;
+}[] = [
+  {
+    value: "modeler",
+    label: "建模手",
+    desc: "题意解析",
+    icon: Brain,
+    tone: "bg-chart-1/10 text-chart-1",
+  },
+  {
+    value: "coder",
+    label: "编程手",
+    desc: "模型实现",
+    icon: Code,
+    tone: "bg-chart-2/10 text-chart-2",
+  },
+  {
+    value: "writer",
+    label: "论文手",
+    desc: "成果表达",
+    icon: PenTool,
+    tone: "bg-chart-4/10 text-chart-4",
+  },
+  {
+    value: "undecided",
+    label: "暂未确定",
+    desc: "稍后分工",
+    icon: HelpCircle,
+    tone: "bg-muted text-muted-foreground",
+  },
+];
+
+const formInputClass =
+  "h-11 rounded-xl border-border/70 bg-background/80 transition-colors focus-visible:ring-2 focus-visible:ring-primary/25";
+const errorTextClass = "mt-1.5 text-xs font-medium text-destructive";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -128,338 +169,382 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-bg-mesh p-4">
-      {/* 背景装饰 */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl animate-float-slow" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-cyan-500/10 blur-3xl animate-float" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-purple-500/5 blur-3xl" />
+    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden gradient-bg-mesh px-4 py-8">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute left-1/2 top-8 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -right-24 top-1/4 h-80 w-80 rounded-full bg-chart-2/10 blur-3xl animate-float-slow" />
+        <div className="absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-chart-5/10 blur-3xl animate-float" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(79,70,229,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(8,145,178,0.05)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(circle_at_center,black,transparent_72%)]" />
       </div>
 
-      <div className="relative w-full max-w-md animate-scale-in">
-        {/* 登录卡片 */}
-        <div className="glass-card-strong rounded-3xl shadow-2xl overflow-hidden">
-          {/* Logo 区域 */}
-          <div className="flex flex-col items-center pt-8 pb-4 px-8">
-            <div className="mb-4 animate-float">
-              <Image
-                src="/logo-withtext.svg"
-                alt="CMAMSys"
-                width={160}
-                height={72}
-                priority
-              />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">欢迎回来</h1>
-            <p className="text-sm text-muted-foreground">登录 CMAMSys 开始数学建模之旅</p>
+      <section className="relative z-10 w-full max-w-md animate-scale-in">
+        <div className="absolute inset-x-8 top-32 -z-10 h-56 rounded-[2rem] bg-primary/10 blur-2xl" />
+        <div className="absolute inset-x-2 top-20 -z-20 h-72 rounded-[2.5rem] bg-gradient-to-br from-primary/10 via-card/20 to-chart-2/10 blur-3xl" />
+
+        <div className="mb-5 text-center">
+          <Image
+            src="/logo-withtext.svg"
+            alt="CMAMSys"
+            width={168}
+            height={76}
+            className="mx-auto mb-3"
+            priority
+          />
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary backdrop-blur">
+            <Sparkles className="size-3.5" />
+            AI 驱动的数学建模协作入口
           </div>
-
-          {/* Tab 切换 */}
-          <div className="px-8 mb-6">
-            <div className="flex rounded-xl bg-muted/80 p-1">
-              <button
-                onClick={() => {
-                  setActiveTab("login");
-                  setErrors({});
-                }}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  activeTab === "login"
-                    ? "bg-white text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                登录
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("register");
-                  setErrors({});
-                }}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  activeTab === "register"
-                    ? "bg-white text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                注册
-              </button>
-            </div>
-          </div>
-
-          {/* 登录表单 */}
-          {activeTab === "login" && (
-            <form onSubmit={handleLogin} className="px-8 pb-8 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  用户名
-                </label>
-                <Input
-                  placeholder="请输入用户名"
-                  value={loginForm.username}
-                  onChange={(e) =>
-                    setLoginForm({ ...loginForm, username: e.target.value })
-                  }
-                  className="h-10 rounded-xl"
-                />
-                {errors.username && (
-                  <p className="text-xs text-red-500 mt-1">{errors.username}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  密码
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="请输入密码"
-                    value={loginForm.password}
-                    onChange={(e) =>
-                      setLoginForm({ ...loginForm, password: e.target.value })
-                    }
-                    className="h-10 rounded-xl pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="size-4" />
-                    ) : (
-                      <Eye className="size-4" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-xs text-red-500 mt-1">{errors.password}</p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-border text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span className="text-sm text-muted-foreground">记住我</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 transition-colors"
-                >
-                  忘记密码？
-                </button>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-10 rounded-xl gradient-bg text-white hover:opacity-90 transition-opacity shadow-lg shadow-indigo-500/25"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin mr-2" />
-                    登录中...
-                  </>
-                ) : (
-                  "登录"
-                )}
-              </Button>
-            </form>
-          )}
-
-          {/* 注册表单 */}
-          {activeTab === "register" && (
-            <form onSubmit={handleRegister} className="px-8 pb-8 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  用户名
-                </label>
-                <Input
-                  placeholder="请输入用户名"
-                  value={registerForm.username}
-                  onChange={(e) =>
-                    setRegisterForm({ ...registerForm, username: e.target.value })
-                  }
-                  className="h-10 rounded-xl"
-                />
-                {errors.username && (
-                  <p className="text-xs text-red-500 mt-1">{errors.username}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  邮箱
-                </label>
-                <Input
-                  type="email"
-                  placeholder="请输入邮箱"
-                  value={registerForm.email}
-                  onChange={(e) =>
-                    setRegisterForm({ ...registerForm, email: e.target.value })
-                  }
-                  className="h-10 rounded-xl"
-                />
-                {errors.email && (
-                  <p className="text-xs text-red-500 mt-1">{errors.email}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  显示名称
-                </label>
-                <Input
-                  placeholder="请输入显示名称"
-                  value={registerForm.displayName}
-                  onChange={(e) =>
-                    setRegisterForm({
-                      ...registerForm,
-                      displayName: e.target.value,
-                    })
-                  }
-                  className="h-10 rounded-xl"
-                />
-                {errors.displayName && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.displayName}
-                  </p>
-                )}
-              </div>
-
-              {/* 角色选择 */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  选择你的角色
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {([
-                    { value: "modeler", label: "建模手", icon: Brain, color: "from-blue-500 to-indigo-600" },
-                    { value: "coder", label: "编程手", icon: Code, color: "from-purple-500 to-violet-600" },
-                    { value: "writer", label: "论文手", icon: PenTool, color: "from-orange-500 to-amber-600" },
-                    { value: "undecided", label: "暂未确定", icon: HelpCircle, color: "from-gray-400 to-slate-500" },
-                  ] as { value: UserRole; label: string; icon: React.ElementType; color: string }[]).map((r) => {
-                    const Icon = r.icon;
-                    const active = registerForm.role === r.value;
-                    return (
-                      <button
-                        type="button"
-                        key={r.value}
-                        onClick={() => setRegisterForm({ ...registerForm, role: r.value })}
-                        className={cn(
-                          "flex items-center gap-2 px-3 py-2 rounded-xl border transition-all text-sm",
-                          active
-                            ? "border-indigo-400 bg-gradient-to-r text-white shadow-md " + r.color
-                            : "border-border bg-white/60 hover:border-indigo-200 text-foreground"
-                        )}
-                      >
-                        <Icon className="w-4 h-4" />
-                        {r.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  密码
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="请输入密码（至少6位）"
-                    value={registerForm.password}
-                    onChange={(e) =>
-                      setRegisterForm({
-                        ...registerForm,
-                        password: e.target.value,
-                      })
-                    }
-                    className="h-10 rounded-xl pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="size-4" />
-                    ) : (
-                      <Eye className="size-4" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-xs text-red-500 mt-1">{errors.password}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  确认密码
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="请再次输入密码"
-                    value={registerForm.confirmPassword}
-                    onChange={(e) =>
-                      setRegisterForm({
-                        ...registerForm,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    className="h-10 rounded-xl pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="size-4" />
-                    ) : (
-                      <Eye className="size-4" />
-                    )}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.confirmPassword}
-                  </p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-10 rounded-xl gradient-bg text-white hover:opacity-90 transition-opacity shadow-lg shadow-indigo-500/25"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin mr-2" />
-                    注册中...
-                  </>
-                ) : (
-                  "注册"
-                )}
-              </Button>
-            </form>
-          )}
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            {activeTab === "login" ? "欢迎回来" : "加入 CMAMSys"}
+          </h1>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            围绕建模、编程、论文三手分工，统一管理团队协作与 MMP 复盘。
+          </p>
         </div>
 
-        {/* 底部信息 */}
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          CMAMSys - AI驱动的数学建模全流程协作工具
+        <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
+          {roleOptions.slice(0, 3).map((role) => {
+            const Icon = role.icon;
+            return (
+              <span
+                key={role.value}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-card/55 px-3 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur"
+              >
+                <Icon className="size-3.5 text-primary" />
+                {role.label}
+              </span>
+            );
+          })}
+        </div>
+
+        <div className="overflow-hidden rounded-3xl border border-white/50 bg-card/75 shadow-[0_18px_56px_rgba(49,46,129,0.10)] ring-1 ring-white/40 backdrop-blur-2xl">
+          <div className="px-5 py-5 sm:px-6">
+            <div className="mb-5 grid rounded-2xl bg-muted/60 p-1">
+              <div className="grid grid-cols-2 gap-1">
+                <button
+                  type="button"
+                  aria-pressed={activeTab === "login"}
+                  onClick={() => {
+                    setActiveTab("login");
+                    setErrors({});
+                  }}
+                  className={cn(
+                    "min-h-10 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
+                    activeTab === "login"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-background/70 hover:text-foreground"
+                  )}
+                >
+                  登录
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={activeTab === "register"}
+                  onClick={() => {
+                    setActiveTab("register");
+                    setErrors({});
+                  }}
+                  className={cn(
+                    "min-h-10 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
+                    activeTab === "register"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-background/70 hover:text-foreground"
+                  )}
+                >
+                  注册
+                </button>
+              </div>
+            </div>
+
+            {activeTab === "login" && (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    用户名
+                  </label>
+                  <Input
+                    placeholder="请输入用户名"
+                    value={loginForm.username}
+                    onChange={(e) =>
+                      setLoginForm({ ...loginForm, username: e.target.value })
+                    }
+                    className={formInputClass}
+                  />
+                  {errors.username && (
+                    <p className={errorTextClass}>{errors.username}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    密码
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="请输入密码"
+                      value={loginForm.password}
+                      onChange={(e) =>
+                        setLoginForm({ ...loginForm, password: e.target.value })
+                      }
+                      className={cn(formInputClass, "pr-11")}
+                    />
+                    <button
+                      type="button"
+                      aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-4" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className={errorTextClass}>{errors.password}</p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <label className="flex min-h-10 cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="size-4 rounded border-border text-primary accent-primary focus:ring-primary/30"
+                    />
+                    记住我
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="min-h-10 rounded-lg px-1 text-sm font-medium text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                  >
+                    忘记密码？
+                  </button>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="gradient-bg h-11 w-full rounded-xl text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:opacity-95 disabled:translate-y-0 disabled:opacity-70"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      登录中...
+                    </>
+                  ) : (
+                    "登录"
+                  )}
+                </Button>
+              </form>
+            )}
+
+            {activeTab === "register" && (
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      用户名
+                    </label>
+                    <Input
+                      placeholder="请输入用户名"
+                      value={registerForm.username}
+                      onChange={(e) =>
+                        setRegisterForm({ ...registerForm, username: e.target.value })
+                      }
+                      className={formInputClass}
+                    />
+                    {errors.username && (
+                      <p className={errorTextClass}>{errors.username}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      显示名称
+                    </label>
+                    <Input
+                      placeholder="请输入显示名称"
+                      value={registerForm.displayName}
+                      onChange={(e) =>
+                        setRegisterForm({
+                          ...registerForm,
+                          displayName: e.target.value,
+                        })
+                      }
+                      className={formInputClass}
+                    />
+                    {errors.displayName && (
+                      <p className={errorTextClass}>{errors.displayName}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    邮箱
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="请输入邮箱"
+                    value={registerForm.email}
+                    onChange={(e) =>
+                      setRegisterForm({ ...registerForm, email: e.target.value })
+                    }
+                    className={formInputClass}
+                  />
+                  {errors.email && (
+                    <p className={errorTextClass}>{errors.email}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-foreground">
+                    选择你的角色
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {roleOptions.map((role) => {
+                      const Icon = role.icon;
+                      const active = registerForm.role === role.value;
+                      return (
+                        <button
+                          type="button"
+                          key={role.value}
+                          aria-pressed={active}
+                          onClick={() =>
+                            setRegisterForm({ ...registerForm, role: role.value })
+                          }
+                          className={cn(
+                            "min-h-16 rounded-2xl border px-3 py-2 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
+                            active
+                              ? "border-primary/40 bg-primary/10 text-primary shadow-sm"
+                              : "border-border/70 bg-background/65 text-foreground hover:border-primary/25 hover:bg-primary/5"
+                          )}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "flex size-8 shrink-0 items-center justify-center rounded-full",
+                                active ? "bg-primary text-primary-foreground" : role.tone
+                              )}
+                            >
+                              <Icon className="size-4" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block text-sm font-semibold">
+                                {role.label}
+                              </span>
+                              <span className="block text-xs text-muted-foreground">
+                                {role.desc}
+                              </span>
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      密码
+                    </label>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="至少6位"
+                        value={registerForm.password}
+                        onChange={(e) =>
+                          setRegisterForm({
+                            ...registerForm,
+                            password: e.target.value,
+                          })
+                        }
+                        className={cn(formInputClass, "pr-11")}
+                      />
+                      <button
+                        type="button"
+                        aria-label={showPassword ? "隐藏密码" : "显示密码"}
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="size-4" />
+                        ) : (
+                          <Eye className="size-4" />
+                        )}
+                      </button>
+                    </div>
+                    {errors.password && (
+                      <p className={errorTextClass}>{errors.password}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">
+                      确认密码
+                    </label>
+                    <div className="relative">
+                      <Input
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="请再次输入"
+                        value={registerForm.confirmPassword}
+                        onChange={(e) =>
+                          setRegisterForm({
+                            ...registerForm,
+                            confirmPassword: e.target.value,
+                          })
+                        }
+                        className={cn(formInputClass, "pr-11")}
+                      />
+                      <button
+                        type="button"
+                        aria-label={showConfirmPassword ? "隐藏确认密码" : "显示确认密码"}
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="size-4" />
+                        ) : (
+                          <Eye className="size-4" />
+                        )}
+                      </button>
+                    </div>
+                    {errors.confirmPassword && (
+                      <p className={errorTextClass}>{errors.confirmPassword}</p>
+                    )}
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="gradient-bg h-11 w-full rounded-xl text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:opacity-95 disabled:translate-y-0 disabled:opacity-70"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      注册中...
+                    </>
+                  ) : (
+                    "注册"
+                  )}
+                </Button>
+              </form>
+            )}
+          </div>
+        </div>
+
+        <p className="mt-5 text-center text-xs text-muted-foreground">
+          CMAMSys · AI 驱动的数学建模全流程协作工具
         </p>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

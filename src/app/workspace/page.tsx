@@ -373,16 +373,13 @@ export default function WorkspacePage() {
   const selectedCoreFile = coreFiles.find((f) => f.name === coreFileDialog) ?? null;
 
   /* ---------- 短期记忆状态 ---------- */
-  const [messages, setMessages] = useState<Array<{ sender: string; content: string; isAI: boolean }>>([]);
-  const [chatIndex, setChatIndex] = useState(0);
+  const [messages, setMessages] = useState<Array<{ sender: string; content: string; isAI: boolean }>>(() =>
+    chatPool.slice(0, 3)
+  );
+  const [chatIndex, setChatIndex] = useState(3);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // 初始加载前3条
-    const initial = chatPool.slice(0, 3);
-    setMessages(initial);
-    setChatIndex(3);
-
     const timer = setInterval(() => {
       setChatIndex((prev) => {
         const nextMsg = chatPool[prev % chatPool.length];

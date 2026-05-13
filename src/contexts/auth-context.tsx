@@ -63,18 +63,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 页面刷新时从 localStorage 恢复用户状态
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed.id && parsed.username) {
-          setUser(parsed);
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.id && parsed.username) {
+            setUser(parsed);
+          }
         }
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
       }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const login = useCallback(async (username: string, password: string): Promise<boolean> => {
